@@ -13,3 +13,4 @@ mitreattack-python
 celery
 redis
 duckduckgo-search
+python-nmap

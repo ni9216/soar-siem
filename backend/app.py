@@ -222,50 +222,6 @@ def anomaly_detect(text):
 
 
 # =========================
-# LOGIN
-# =========================
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-
-    if data.get("username") == "admin" and data.get("password") == "admin":
-        return jsonify({"token": "enterprise-token"})
-
-    return jsonify({"error": "Invalid credentials"}), 401
-
-
-# =========================
-# STATS (PIE CHART)
-# =========================
-@app.route("/api/stats")
-def stats():
-    incidents = Incident.query.all()
-
-    return jsonify({
-        "Critical": len([i for i in incidents if i.severity == "Critical"]),
-        "High": len([i for i in incidents if i.severity == "High"]),
-        "Medium": len([i for i in incidents if i.severity == "Medium"]),
-        "Low": len([i for i in incidents if i.severity == "Low"])
-    })
-
-
-# =========================
-# TRENDS (LINE CHART) FIXED
-# =========================
-@app.route("/api/trends")
-def trends():
-    incidents = Incident.query.order_by(Incident.timestamp.asc()).all()
-
-    return jsonify([
-        {
-            "time": i.timestamp.strftime("%H:%M"),
-            "severity": i.severity
-        }
-        for i in incidents
-    ])
-
-
-# =========================
 # SERVE FRONTEND
 # =========================
 @app.route('/')

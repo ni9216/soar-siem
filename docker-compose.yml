@@ -61,6 +61,32 @@ services:
     volumes:
       - redis-data:/data
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: soc-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - ELASTICSEARCH_HOST=elasticsearch
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key}
+      - DEFAULT_ADMIN_USERNAME=${DEFAULT_ADMIN_USERNAME:-admin}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-ChangeMe123!}
+      - THREAT_INTELLIGENCE_API_KEY=${THREAT_INTELLIGENCE_API_KEY:-}
+    depends_on:
+      - kafka
+      - elasticsearch
+      - redis
+    volumes:
+      - ./backend:/app
+      - ./backend/db.sqlite:/app/db.sqlite
+    command: python app.py
+
 volumes:
   elasticsearch-data:
   redis-data:

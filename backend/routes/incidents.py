@@ -101,3 +101,17 @@ def get_users():
         'username': u.username,
         'role': u.role
     } for u in users])
+
+
+@incidents_bp.route("/search", methods=["GET"])
+def search_incidents():
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify([])
+
+    # Search in log and description fields
+    incidents = Incident.query.filter(
+        (Incident.log.contains(query)) | (Incident.description.contains(query))
+    ).order_by(Incident.id.desc()).all()
+
+    return jsonify([i.to_dict() for i in incidents])

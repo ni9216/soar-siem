@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API = "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Login({ setToken }) {
   const [username, setUsername] = useState("");
@@ -16,7 +16,7 @@ export default function Login({ setToken }) {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API}/login`, {
+      const res = await fetch(`${API}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
