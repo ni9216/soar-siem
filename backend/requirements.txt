@@ -1,0 +1,15 @@
+flask
+flask-cors
+flask-sqlalchemy
+flask-socketio
+flask-jwt-extended
+numpy
+scikit-learn
+eventlet
+kafka-python
+elasticsearch
+requests
+mitreattack-python
+celery
+redis
+duckduckgo-search
