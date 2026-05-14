@@ -1,18 +1,23 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from models import Incident, User, db
 from sqlalchemy import func
 from datetime import datetime, timedelta
+from routes.auth import role_required
 
 incidents_bp = Blueprint("incidents", __name__)
 
 
 @incidents_bp.route("/incidents", methods=["GET"])
+@jwt_required()
 def get_incidents():
     incidents = Incident.query.order_by(Incident.id.desc()).all()
     return jsonify([i.to_dict() for i in incidents])
 
 
 @incidents_bp.route("/incidents/<int:incident_id>", methods=["PUT"])
+@jwt_required()
+@role_required('admin', 'analyst')
 def update_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     data = request.get_json()
@@ -20,11 +25,19 @@ def update_incident(incident_id):
     if 'status' in data:
         incident.status = data['status']
 
+    if 'notes' in data:
+        incident.notes = data['notes']
+
     db.session.commit()
+
+    from app import socketio
+    socketio.emit('incident_update', incident.to_dict())
     return jsonify(incident.to_dict())
 
 
 @incidents_bp.route("/incidents/<int:incident_id>/assign", methods=["PUT"])
+@jwt_required()
+@role_required('admin', 'analyst')
 def assign_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     data = request.get_json()
@@ -33,10 +46,14 @@ def assign_incident(incident_id):
         incident.assigned_to = data['assigned_to']
 
     db.session.commit()
+
+    from app import socketio
+    socketio.emit('incident_update', incident.to_dict())
     return jsonify(incident.to_dict())
 
 
 @incidents_bp.route("/stats", methods=["GET"])
+@jwt_required()
 def get_stats():
     # Get severity counts
     severity_counts = db.session.query(
@@ -56,6 +73,7 @@ def get_stats():
 
 
 @incidents_bp.route("/trends", methods=["GET"])
+@jwt_required()
 def get_trends():
     # Get incidents from last 24 hours
     yesterday = datetime.utcnow() - timedelta(days=1)
@@ -94,6 +112,8 @@ def get_trends():
 
 
 @incidents_bp.route("/users", methods=["GET"])
+@jwt_required()
+@role_required('admin', 'analyst', 'viewer')
 def get_users():
     users = User.query.all()
     return jsonify([{
@@ -104,14 +124,15 @@ def get_users():
 
 
 @incidents_bp.route("/search", methods=["GET"])
+@jwt_required()
 def search_incidents():
     query = request.args.get('q', '')
     if not query:
         return jsonify([])
 
-    # Search in log and description fields
+    # Search in title and details fields
     incidents = Incident.query.filter(
-        (Incident.log.contains(query)) | (Incident.description.contains(query))
+        (Incident.title.contains(query)) | (Incident.details.contains(query))
     ).order_by(Incident.id.desc()).all()
 
     return jsonify([i.to_dict() for i in incidents])

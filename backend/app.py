@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, decode_token
 import json
 from datetime import datetime
 import subprocess
@@ -11,6 +11,7 @@ import time
 from collections import deque
 import os
 
+from sqlalchemy import text
 from models import db, Incident, User, ThreatFeed
 from config import Config
 
@@ -99,6 +100,28 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 jwt = JWTManager(app)
 
+
+@socketio.on('connect')
+def handle_connect(auth):
+    token = None
+    if isinstance(auth, dict):
+        token = auth.get('token')
+    if not token:
+        token = request.args.get('token')
+
+    if not token:
+        return False
+
+    try:
+        decoded = decode_token(token)
+        username = decoded.get('sub') or decoded.get('identity')
+        if not username or not User.query.filter_by(username=username).first():
+            return False
+    except Exception:
+        return False
+
+    return True
+
 # Initialize in-memory services (no external dependencies!)
 es = InMemoryElasticsearch()
 kafka_producer = InMemoryKafka()
@@ -126,6 +149,7 @@ from routes.incidents import incidents_bp
 from routes.scan import scan_bp
 from routes.auth import auth_bp
 from routes.threats import threats_bp
+from routes.soar import soar_bp
 
 
 # =========================
@@ -136,13 +160,14 @@ app.register_blueprint(incidents_bp, url_prefix="/api")
 app.register_blueprint(scan_bp, url_prefix="/api")
 app.register_blueprint(auth_bp, url_prefix="/api")
 app.register_blueprint(threats_bp, url_prefix="/api")
+app.register_blueprint(soar_bp, url_prefix="/api")
 
 
 # =========================
-# HOME ROUTE (TEST SERVER)
+# STATUS ROUTE (TEST SERVER)
 # =========================
-@app.route("/")
-def home():
+@app.route("/api/status")
+def status():
     return jsonify({
         "status": "OK",
         "message": "Enterprise SIEM Running 🚀"
@@ -238,13 +263,35 @@ def serve_frontend(path=''):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+
+        # Fix outdated incident table schema if the database was created with an older model.
+        try:
+            with db.engine.connect() as conn:
+                result = conn.execute(text("PRAGMA table_info(incident)"))
+                columns = [row[1] for row in result.fetchall()]
+                if 'status' not in columns:
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN status VARCHAR(50) DEFAULT 'open'"))
+                if 'assigned_to' not in columns:
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN assigned_to INTEGER"))
+                if 'notes' not in columns:
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN notes TEXT DEFAULT ''"))
+        except Exception as exc:
+            print(f"Warning: unable to migrate incident schema automatically: {exc}")
+
         # Initialize default admin user
         from models import User
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', role='admin')
-            admin.set_password('admin123')
+        admin_username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
+        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin')
+        existing_admin = User.query.filter_by(username=admin_username).first()
+        if not existing_admin:
+            admin = User(username=admin_username, role='admin')
+            admin.set_password(admin_password)
             db.session.add(admin)
             db.session.commit()
             print("Default admin user created.")
+        elif not existing_admin.check_password(admin_password):
+            existing_admin.set_password(admin_password)
+            db.session.commit()
+            print("Default admin password updated to match environment settings.")
 
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)

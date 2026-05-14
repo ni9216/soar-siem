@@ -2,10 +2,13 @@ import logging
 import subprocess
 import os
 from datetime import datetime
+from celery import Celery
 
 # Set up logging for SOAR actions
 logging.basicConfig(filename='soar_actions.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
+
+celery = Celery('soc_soar')
 
 @celery.task
 def auto_response(incident_id, severity, incident_details=None):

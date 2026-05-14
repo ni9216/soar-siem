@@ -34,6 +34,7 @@ class Incident(db.Model):
     mitre_attack_id = db.Column(db.String(50))  # MITRE ATT&CK mapping
     status = db.Column(db.String(50), default='open')  # open, investigating, resolved, closed
     assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    notes = db.Column(db.Text, default='')
     
     def to_dict(self):
         return {
@@ -45,7 +46,8 @@ class Incident(db.Model):
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
             "mitre_attack_id": self.mitre_attack_id,
             "status": self.status,
-            "assigned_to": self.assigned_to
+            "assigned_to": self.assigned_to,
+            "notes": self.notes
         }
 
 

@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 
 scan_bp = Blueprint("scan", __name__)
 
 
 @scan_bp.route("/scan", methods=["POST"])
+@jwt_required()
 def scan_target():
 
     data = request.get_json()
@@ -21,6 +23,7 @@ def scan_target():
     scanner = nmap.PortScanner()
 
     try:
+        scanner.scan(target, arguments='-sV -p 1-1024')
 
         results = []
 

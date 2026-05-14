@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
+from flask_jwt_extended import jwt_required
 
 from models import db, Incident
 from services.severity_engine import severity_score
@@ -10,6 +11,7 @@ from services.soar_engine import auto_response
 logs_bp = Blueprint("logs", __name__)
 
 @logs_bp.route("/logs", methods=["POST"])
+@jwt_required()
 def ingest_log():
 
     from app import kafka_producer, es, KAFKA_ENABLED, ES_ENABLED, socketio

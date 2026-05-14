@@ -22,6 +22,7 @@ class Config:
     CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
     CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
     
-    # Threat Intelligence API (example: AlienVault OTX)
+    # Threat Intelligence API settings
     THREAT_INTELLIGENCE_API_KEY = os.getenv('THREAT_INTELLIGENCE_API_KEY', '')
-    THREAT_INTELLIGENCE_URL = 'https://otx.alienvault.com/api/v1/indicators/IPv4/{ip}/general'
+    ABUSEIPDB_API_KEY = os.getenv('ABUSEIPDB_API_KEY', '')
+    ABUSEIPDB_URL = 'https://api.abuseipdb.com/api/v2/check?maxAgeInDays=90&ipAddress={ip}'

@@ -1,904 +1,816 @@
 import { useEffect, useState } from "react";
-
 import { io } from "socket.io-client";
-
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Legend,
   BarChart,
   Bar,
-  AreaChart,
-  Area,
-  ComposedChart,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
 } from "recharts";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-const socket = io(API);
-
 const COLORS = {
-  Critical: "#a855f7",
-  High: "#ef4444",
-  Medium: "#f59e0b",
+  Critical: "#ef4444",
+  High: "#f59e0b",
+  Medium: "#60a5fa",
   Low: "#22c55e",
 };
 
-export default function Dashboard({ setToken }) {
+const tabs = [
+  { id: "incidents", label: "Incidents" },
+  { id: "logs", label: "Live Logs" },
+  { id: "threats", label: "Threat Intelligence" },
+  { id: "soar", label: "SOAR & Automation" },
+  { id: "users", label: "User Management", adminOnly: true },
+  { id: "settings", label: "Settings" },
+];
 
-  const [incidents, setIncidents] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [stats, setStats] = useState({});
-  const [trends, setTrends] = useState([]);
-  const [target, setTarget] = useState("");
-  const [search, setSearch] = useState("");
-  const [alertThreshold, setAlertThreshold] = useState(10);
-  const [selectedIncident, setSelectedIncident] = useState(null);
-  const [showWorkflow, setShowWorkflow] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState({ role: 'admin' });
-  const [heatmapData, setHeatmapData] = useState([]);
-
-  // =========================
-  // LOAD DASHBOARD
-  // =========================
-  useEffect(() => {
-
-    loadDashboard();
-    loadUsers();
-
-    socket.on("new_incident", (data) => {
-
-      setIncidents((prev) => [
-        data,
-        ...prev,
-      ]);
-
-      loadStats();
-
-      loadTrends();
-    });
-
-    socket.on("log_stream", (log) => {
-
-      setLogs((prev) => [
-        log,
-        ...prev,
-      ].slice(0, 100));
-    });
-
-    return () => {
-
-      socket.off("new_incident");
-
-      socket.off("log_stream");
-    };
-
-  }, []);
-
-  // =========================
-  // LOAD ALL
-  // =========================
-  const loadDashboard = async () => {
-
-    await loadIncidents();
-
-    await loadStats();
-
-    await loadTrends();
-  };
-
-  // =========================
-  // LOAD INCIDENTS
-  // =========================
-  const loadIncidents = async () => {
-
-    const res = await fetch(
-      `${API}/api/incidents`
-    );
-
-    const data = await res.json();
-
-    setIncidents(data);
-  };
-
-  // =========================
-  // LOAD STATS
-  // =========================
-  const loadStats = async () => {
-
-    const res = await fetch(
-      `${API}/api/stats`
-    );
-
-    const data = await res.json();
-
-    setStats(data);
-  };
-
-  // =========================
-  // LOAD TRENDS
-  // =========================
-  const loadTrends = async () => {
-
-    const res = await fetch(
-      `${API}/api/trends`
-    );
-
-    const data = await res.json();
-
-    const formatted = data.map((item) => ({
-      time: item.time,
-
-      value:
-        item.severity === "Critical"
-          ? 4
-          : item.severity === "High"
-          ? 3
-          : item.severity === "Medium"
-          ? 2
-          : 1,
-    }));
-
-    setTrends(formatted);
-  };
-
-  // =========================
-  // RUN SCAN
-  // =========================
-  const runScan = async () => {
-
-    if (!target) return;
-
-    await fetch(`${API}/api/scan`, {
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        target,
-      }),
-    });
-
-    setTarget("");
-
-    loadDashboard();
-  };
-
-  // =========================
-  // SEARCH
-  // =========================
-  const searchIncidents = async () => {
-
-    const res = await fetch(
-      `${API}/api/search?q=${search}`
-    );
-
-    const data = await res.json();
-
-    setIncidents(data);
-  };
-
-  // =========================
-  // LOGOUT
-  // =========================
-  const logout = () => {
-
-    localStorage.removeItem("token");
-
-    setToken(null);
-  };
-
-  // =========================
-  // LOAD USERS
-  // =========================
-  const loadUsers = async () => {
-    try {
-      const res = await fetch(`${API}/api/users`);
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.log("Users endpoint not available");
-    }
-  };
-
-  // =========================
-  // GENERATE HEATMAP DATA
-  // =========================
-  const generateHeatmapData = () => {
-    const hours = Array.from({length: 24}, (_, i) => i);
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    const heatmap = days.map(day => {
-      const dayData = { day };
-      hours.forEach(hour => {
-        const incidentsAtTime = incidents.filter(incident => {
-          const incidentDate = new Date(incident.timestamp);
-          const incidentDay = incidentDate.toLocaleDateString('en-US', { weekday: 'short' });
-          const incidentHour = incidentDate.getHours();
-          return incidentDay === day && incidentHour === hour;
-        });
-        dayData[`hour_${hour}`] = incidentsAtTime.length;
-      });
-      return dayData;
-    });
-
-    setHeatmapData(heatmap);
-  };
-
-  // =========================
-  // UPDATE INCIDENT STATUS
-  // =========================
-  const updateIncidentStatus = async (incidentId, status) => {
-    try {
-      await fetch(`${API}/api/incidents/${incidentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      await loadIncidents();
-    } catch (err) {
-      console.error('Failed to update incident status');
-    }
-  };
-
-  // =========================
-  // ASSIGN INCIDENT
-  // =========================
-  const assignIncident = async (incidentId, userId) => {
-    try {
-      await fetch(`${API}/api/incidents/${incidentId}/assign`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assigned_to: userId })
-      });
-      await loadIncidents();
-    } catch (err) {
-      console.error('Failed to assign incident');
-    }
-  };
-
-  // Update heatmap when incidents change
-  useEffect(() => {
-    generateHeatmapData();
-  }, [incidents]);
-
-  // =========================
-  // PIE DATA
-  // =========================
-  const pieData = [
-    {
-      name: "Critical",
-      value: stats.Critical || 0,
-    },
-
-    {
-      name: "High",
-      value: stats.High || 0,
-    },
-
-    {
-      name: "Medium",
-      value: stats.Medium || 0,
-    },
-
-    {
-      name: "Low",
-      value: stats.Low || 0,
-    },
-  ];
-
+function SummaryCard({ title, value, color }) {
   return (
     <div
       style={{
-        background: "#020617",
-        minHeight: "100vh",
-        color: "white",
-        padding: 20,
-        fontFamily: "Arial",
+        flex: 1,
+        minWidth: 150,
+        borderRadius: 18,
+        background: "#0f172a",
+        padding: 18,
+        border: "1px solid #1e293b",
+        marginRight: 16,
       }}
     >
-
-      {/* HEADER */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 20,
-        }}
-      >
-
-        <div>
-          <h1
-            style={{
-              color: "#22c55e",
-            }}
-          >
-            Enterprise AI SIEM/SOAR
-          </h1>
-
-          <p style={{ color: "#94a3b8" }}>
-            Real-Time Threat Monitoring
-          </p>
-        </div>
-
-        <button
-          onClick={logout}
-
-          style={{
-            background: "#ef4444",
-            border: "none",
-            padding: "10px 20px",
-            borderRadius: 8,
-            color: "white",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-
+      <div style={{ color: "#94a3b8", fontSize: 14, marginBottom: 8 }}>
+        {title}
       </div>
+      <div style={{ color, fontSize: 28, fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
 
-      {/* SEARCH */}
+export default function Dashboard({ auth, onLogout }) {
+  const [activeTab, setActiveTab] = useState("incidents");
+  const [incidents, setIncidents] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [stats, setStats] = useState({ Critical: 0, High: 0, Medium: 0, Low: 0 });
+  const [trends, setTrends] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [threats, setThreats] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [scanTarget, setScanTarget] = useState("");
+  const [scanMessage, setScanMessage] = useState("");
+  const [workflowNote, setWorkflowNote] = useState("Select a workflow to get started.");
+  const [noteEdits, setNoteEdits] = useState({});
+  const [tiQuery, setTiQuery] = useState("");
+  const [tiResult, setTiResult] = useState(null);
+  const [tiStatus, setTiStatus] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [socket, setSocket] = useState(null);
+  const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
+  const isViewer = auth?.role === "viewer";
+  const availableTabs = tabs.filter(tab => !tab.adminOnly || auth?.role === "admin");
+
+  const fetchWithAuth = async (path, options = {}) => {
+    const headers = {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${auth?.token}`,
+    };
+
+    const response = await fetch(`${API}${path}`, {
+      ...options,
+      headers,
+    });
+
+    if (response.status === 401) {
+      onLogout();
+      return null;
+    }
+
+    return response;
+  };
+
+  const loadIncidents = async () => {
+    const response = await fetchWithAuth("/api/incidents");
+    if (!response) return;
+    const data = await response.json();
+    setIncidents(data);
+  };
+
+  const loadStats = async () => {
+    const response = await fetchWithAuth("/api/stats");
+    if (!response) return;
+    const data = await response.json();
+    setStats({ Critical: 0, High: 0, Medium: 0, Low: 0, ...data });
+  };
+
+  const loadTrends = async () => {
+    const response = await fetchWithAuth("/api/trends");
+    if (!response) return;
+    const data = await response.json();
+    setTrends(data);
+  };
+
+  const loadUsers = async () => {
+    const response = await fetchWithAuth("/api/users");
+    if (!response) return;
+    if (response.status === 403) {
+      setUsers([]);
+      return;
+    }
+    const data = await response.json();
+    setUsers(data);
+  };
+
+  const loadThreats = async () => {
+    const response = await fetchWithAuth("/api/threats");
+    if (!response) return;
+    const data = await response.json();
+    setThreats(data);
+  };
+
+  const lookupAbuseIPDB = async () => {
+    if (!tiQuery.trim()) {
+      setTiStatus("Enter an IP address to query.");
+      return;
+    }
+    setTiStatus("Querying AbuseIPDB...");
+    const response = await fetchWithAuth(`/api/threats/abuseipdb?ip=${encodeURIComponent(tiQuery)}`);
+    if (!response) return;
+    const data = await response.json();
+    setTiResult(data);
+    setTiStatus(response.ok ? "Lookup complete." : "Lookup failed.");
+  };
+
+  const updateIncident = async (incidentId, patch) => {
+    const response = await fetchWithAuth(`/api/incidents/${incidentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patch),
+    });
+    if (!response) return null;
+    const data = await response.json();
+    setIncidents((current) => current.map((inc) => (inc.id === data.id ? data : inc)));
+    return data;
+  };
+
+  const assignIncident = async (incidentId, userId) => {
+    const response = await fetchWithAuth(`/api/incidents/${incidentId}/assign`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ assigned_to: userId }),
+    });
+    if (!response) return null;
+    const data = await response.json();
+    setIncidents((current) => current.map((inc) => (inc.id === data.id ? data : inc)));
+    return data;
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      await loadIncidents();
+      return;
+    }
+
+    const response = await fetchWithAuth(
+      `/api/search?q=${encodeURIComponent(searchQuery)}`
+    );
+    if (!response) return;
+
+    const data = await response.json();
+    setIncidents(data);
+  };
+
+  const handleNoteChange = (incidentId, value) => {
+    setNoteEdits((prev) => ({ ...prev, [incidentId]: value }));
+  };
+
+  const saveIncidentNote = async (incidentId) => {
+    const notes = noteEdits[incidentId] ?? incidents.find((inc) => inc.id === incidentId)?.notes ?? "";
+    await updateIncident(incidentId, { notes });
+  };
+
+  const runScan = async () => {
+    if (!scanTarget.trim()) {
+      setScanMessage("Enter a target host or IP to scan.");
+      return;
+    }
+
+    try {
+      const response = await fetchWithAuth("/api/scan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ target: scanTarget }),
+      });
+      if (!response) return;
+
+      const data = await response.json();
+      setScanMessage(data.message || "Scan started successfully.");
+    } catch (error) {
+      setScanMessage("Failed to launch scan. Check backend connectivity.");
+    }
+  };
+
+  const triggerPlaybook = async (playbook) => {
+    if (!incidents.length) {
+      setWorkflowNote("No incident available to run the playbook.");
+      return;
+    }
+
+    const incidentId = incidents[0].id;
+    const response = await fetchWithAuth("/api/soar/run", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ incident_id: incidentId, playbook }),
+    });
+
+    if (!response) return;
+    const data = await response.json();
+
+    if (response.ok) {
+      setWorkflowNote(data.message || `Playbook ${playbook} triggered.`);
+      if (data.incident) {
+        setIncidents((current) => current.map((inc) => (inc.id === data.incident.id ? data.incident : inc)));
+      }
+    } else {
+      setWorkflowNote(data.error || `Failed to run ${playbook} playbook.`);
+    }
+  };
+
+  const launchWorkflow = (workflow) => {
+    triggerPlaybook(workflow);
+  };
+
+  const totalIncidents = incidents.length;
+  const totalThreats = threats.length;
+  const totalLogs = logs.length;
+  const totalUsers = users.length;
+
+  useEffect(() => {
+    if (!auth?.token) {
+      onLogout();
+      return;
+    }
+
+    loadIncidents();
+    loadStats();
+    loadTrends();
+    loadUsers();
+    loadThreats();
+  }, [auth.token]);
+
+  useEffect(() => {
+    if (!auth?.token) return;
+    if (socket) return;
+
+    const connection = io(API, {
+      transports: ["websocket"],
+      auth: { token: auth.token },
+    });
+
+    connection.on("connect", () => {
+      console.log("Socket connected", connection.id);
+    });
+
+    connection.on("new_incident", (incident) => {
+      setIncidents((current) => [incident, ...(current || [])].slice(0, 40));
+    });
+
+    connection.on("log_stream", (message) => {
+      setLogs((current) => [{ timestamp: new Date().toISOString(), ...message }, ...(current || [])].slice(0, 50));
+    });
+
+    connection.on("incident_update", (incident) => {
+      setIncidents((current) => current.map((inc) => (inc.id === incident.id ? incident : inc)));
+    });
+
+    setSocket(connection);
+
+    return () => {
+      connection.disconnect();
+      setSocket(null);
+    };
+  }, [auth.token]);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#020617", color: "#e2e8f0", fontFamily: "Inter, system-ui, sans-serif" }}>
       <div
         style={{
-          display: "flex",
-          gap: 10,
-          marginBottom: 20,
+          maxWidth: 1400,
+          margin: "0 auto",
+          padding: "24px 24px 40px",
         }}
       >
-
-        <input
-          value={search}
-
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
-
-          placeholder="Search incidents..."
-
-          style={{
-            flex: 1,
-            padding: 12,
-            background: "#0f172a",
-            border: "1px solid #334155",
-            color: "white",
-            borderRadius: 8,
-          }}
-        />
-
-        <button
-          onClick={searchIncidents}
-
-          style={{
-            padding: "12px 20px",
-            background: "#3b82f6",
-            border: "none",
-            borderRadius: 8,
-            color: "white",
-            cursor: "pointer",
-          }}
-        >
-          Search
-        </button>
-
-      </div>
-
-      {/* SCAN */}
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 12,
-          marginBottom: 20,
-        }}
-      >
-
-        <h2
-          style={{
-            color: "#22c55e",
-          }}
-        >
-          Run Nmap Scan
-        </h2>
-
-        <div
+        <header
           style={{
             display: "flex",
-            gap: 10,
-            marginTop: 10,
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 24,
           }}
         >
-
-          <input
-            value={target}
-
-            onChange={(e) =>
-              setTarget(e.target.value)
-            }
-
-            placeholder="127.0.0.1"
-
-            style={{
-              flex: 1,
-              padding: 12,
-              background: "#020617",
-              border: "1px solid #334155",
-              color: "white",
-              borderRadius: 8,
-            }}
-          />
-
-          <button
-            onClick={runScan}
-
-            style={{
-              padding: "12px 20px",
-              background: "#22c55e",
-              border: "none",
-              borderRadius: 8,
-              color: "black",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Scan
-          </button>
-
-        </div>
-      </div>
-
-      {/* ALERT THRESHOLDS & SETTINGS */}
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 12,
-          marginBottom: 20,
-        }}
-      >
-        <h2 style={{ color: "#22c55e" }}>Alert Settings</h2>
-        <div style={{ display: "flex", gap: 20, alignItems: "center", marginTop: 10 }}>
           <div>
-            <label style={{ color: "#94a3b8", marginRight: 10 }}>Critical Alert Threshold:</label>
-            <input
-              type="number"
-              value={alertThreshold}
-              onChange={(e) => setAlertThreshold(parseInt(e.target.value))}
-              style={{
-                padding: 8,
-                background: "#020617",
-                border: "1px solid #334155",
-                color: "white",
-                borderRadius: 4,
-                width: 80
-              }}
-            />
+            <div style={{ color: "#22c55e", fontWeight: 800, fontSize: 18 }}>SOC Command Center</div>
+            <h1 style={{ margin: "10px 0 2px", fontSize: 32 }}>Security Operations Dashboard</h1>
+            <div style={{ color: "#94a3b8", fontSize: 14 }}>
+              Logged in as <strong>{auth.role || "analyst"}</strong>
+            </div>
           </div>
-          <div style={{ color: "#94a3b8" }}>
-            Current Incidents: <span style={{ color: "#ef4444", fontWeight: "bold" }}>{incidents.length}</span>
-            {incidents.length > alertThreshold && (
-              <span style={{ color: "#ef4444", marginLeft: 10 }}>⚠️ THRESHOLD EXCEEDED!</span>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* INCIDENT WORKFLOW MANAGEMENT */}
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 12,
-          marginBottom: 20,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ color: "#22c55e" }}>Incident Management</h2>
-          <button
-            onClick={() => setShowWorkflow(!showWorkflow)}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={onLogout}
+              style={{
+                padding: "12px 18px",
+                borderRadius: 12,
+                border: "1px solid #334155",
+                background: "#111827",
+                color: "#e2e8f0",
+                cursor: "pointer",
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </header>
+
+        {isViewer && (
+          <div
             style={{
-              padding: "8px 16px",
-              background: "#3b82f6",
-              border: "none",
-              borderRadius: 6,
-              color: "white",
-              cursor: "pointer",
+              marginBottom: 20,
+              padding: 16,
+              background: "#1e40af",
+              color: "#dbeafe",
+              borderRadius: 12,
+              textAlign: "center",
+              fontSize: 16,
+              fontWeight: 600,
             }}
           >
-            {showWorkflow ? "Hide Workflow" : "Show Workflow"}
-          </button>
-        </div>
+            Viewer Mode: Read-only access to dashboard data.
+          </div>
+        )}
 
-        {showWorkflow && (
-          <div style={{ marginTop: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 15 }}>
-              {incidents.slice(0, 6).map((incident) => (
-                <div
-                  key={incident.id}
-                  style={{
-                    background: "#020617",
-                    padding: 15,
-                    borderRadius: 8,
-                    border: "1px solid #334155"
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                    <div>
-                      <h4 style={{ color: "#22c55e", margin: "0 0 8px 0" }}>{incident.title}</h4>
-                      <p style={{ color: "#94a3b8", fontSize: "14px", margin: "0 0 10px 0" }}>
-                        {incident.details.substring(0, 100)}...
-                      </p>
-                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                        <span style={{
-                          padding: "2px 8px",
-                          borderRadius: 4,
-                          fontSize: "12px",
-                          background: COLORS[incident.severity] || "#666",
-                          color: "white"
-                        }}>
-                          {incident.severity}
-                        </span>
-                        <span style={{ color: "#94a3b8", fontSize: "12px" }}>
-                          {new Date(incident.timestamp).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+        {authError && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: 16,
+              background: "#7f1d1d",
+              color: "#fee2e2",
+              borderRadius: 16,
+            }}
+          >
+            {authError}
+          </div>
+        )}
 
-                  <div style={{ marginTop: 15, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <select
-                      onChange={(e) => updateIncidentStatus(incident.id, e.target.value)}
-                      defaultValue={incident.status || "open"}
-                      style={{
-                        padding: "4px 8px",
-                        background: "#1e293b",
-                        border: "1px solid #334155",
-                        color: "white",
-                        borderRadius: 4,
-                        fontSize: "12px"
-                      }}
-                    >
-                      <option value="open">Open</option>
-                      <option value="investigating">Investigating</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                    </select>
+        <nav style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 28 }}>
+          {availableTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: "12px 18px",
+                borderRadius: 999,
+                border: activeTab === tab.id ? "1px solid #22c55e" : "1px solid #334155",
+                background: activeTab === tab.id ? "#111827" : "#0f172a",
+                color: activeTab === tab.id ? "#22c55e" : "#94a3b8",
+                cursor: "pointer",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-                    <select
-                      onChange={(e) => assignIncident(incident.id, e.target.value)}
-                      defaultValue=""
-                      style={{
-                        padding: "4px 8px",
-                        background: "#1e293b",
-                        border: "1px solid #334155",
-                        color: "white",
-                        borderRadius: 4,
-                        fontSize: "12px"
-                      }}
-                    >
-                      <option value="">Assign To...</option>
-                      {users.map(user => (
-                        <option key={user.id} value={user.id}>{user.username}</option>
-                      ))}
-                    </select>
+        {activeTab === "incidents" && (
+          <div>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+              <SummaryCard title="Critical Alerts" value={stats.Critical} color={COLORS.Critical} />
+              <SummaryCard title="High Severity" value={stats.High} color={COLORS.High} />
+              <SummaryCard title="Medium Alerts" value={stats.Medium} color={COLORS.Medium} />
+              <SummaryCard title="Low Priority" value={stats.Low} color={COLORS.Low} />
+            </div>
+
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 24 }}>
+              <div style={{ flex: 1, minWidth: 300, background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+                  <div>
+                    <div style={{ color: "#94a3b8", fontSize: 14, marginBottom: 6 }}>Incident summary</div>
+                    <div style={{ fontSize: 18, fontWeight: 700 }}>Live incident totals</div>
                   </div>
                 </div>
+
+                <div style={{ width: "100%", height: 220, marginBottom: 18 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={["Critical", "High", "Medium", "Low"].map((name) => ({ name, count: stats[name] || 0 }))}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                      <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
+                      <YAxis tick={{ fill: '#94a3b8' }} />
+                      <Tooltip cursor={{ fill: '#0f172a' }} />
+                      <Bar dataKey="count" fill="#22c55e" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16, marginTop: 14 }}>
+                  <div style={{ background: "#020617", padding: 18, borderRadius: 18, border: "1px solid #1e293b" }}>
+                    <div style={{ color: "#94a3b8", marginBottom: 8 }}>Total incidents</div>
+                    <div style={{ fontSize: 26, fontWeight: 700 }}>{totalIncidents}</div>
+                  </div>
+                  <div style={{ background: "#020617", padding: 18, borderRadius: 18, border: "1px solid #1e293b" }}>
+                    <div style={{ color: "#94a3b8", marginBottom: 8 }}>Active analysts</div>
+                    <div style={{ fontSize: 26, fontWeight: 700 }}>{totalUsers}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ width: 320, background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", fontSize: 14, marginBottom: 18 }}>Threat & log overview</div>
+                <div style={{ color: "#e2e8f0", fontSize: 30, fontWeight: 700, marginBottom: 8 }}>{totalThreats}</div>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Threat indicators loaded</div>
+                <div style={{ marginTop: 18, color: "#94a3b8", fontSize: 13 }}>
+                  Live logs received: {totalLogs}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 16, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 280, display: "flex", gap: 12 }}>
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search incidents by keyword"
+                  style={{
+                    width: "100%",
+                    background: "#020617",
+                    border: "1px solid #334155",
+                    borderRadius: 14,
+                    padding: 14,
+                    color: "#e2e8f0",
+                  }}
+                />
+                <button
+                  onClick={handleSearch}
+                  style={{
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    background: "#22c55e",
+                    border: "none",
+                    color: "#020617",
+                    cursor: "pointer",
+                  }}
+                >
+                  Search
+                </button>
+              </div>
+              <button
+                onClick={loadIncidents}
+                style={{
+                  padding: "14px 18px",
+                  borderRadius: 14,
+                  border: "1px solid #334155",
+                  background: "#111827",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                }}
+              >
+                Refresh incidents
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
+              {incidents.length ? (
+                incidents.map((incident) => {
+                  const assignedLabel = users.find((u) => u.id === incident.assigned_to)?.username || "Unassigned";
+                  return (
+                    <div
+                      key={incident.id}
+                      style={{
+                        background: "#020617",
+                        padding: 18,
+                        borderRadius: 18,
+                        borderLeft: `4px solid ${COLORS[incident.severity] || "#64748b"}`,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                        <strong style={{ fontSize: 16 }}>{incident.title}</strong>
+                        <span style={{ color: COLORS[incident.severity] || "#94a3b8" }}>{incident.severity}</span>
+                      </div>
+                      <div style={{ color: "#94a3b8", marginTop: 8, fontSize: 13 }}>{incident.time || incident.timestamp || "Unknown time"}</div>
+                      <p style={{ marginTop: 12, color: "#e2e8f0", lineHeight: 1.6 }}>{incident.details || incident.description || incident.log || "No details provided."}</p>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
+                        <div style={{ color: "#94a3b8", fontSize: 13 }}><strong>Status:</strong> {incident.status || "open"}</div>
+                        <div style={{ color: "#94a3b8", fontSize: 13 }}><strong>Assigned:</strong> {assignedLabel}</div>
+                      </div>
+
+                      {canManageIncidents && (
+                        <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
+                          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                            <select
+                              value={incident.status || "open"}
+                              onChange={(e) => updateIncident(incident.id, { status: e.target.value })}
+                              style={{ flex: 1, padding: 12, borderRadius: 12, border: "1px solid #334155", background: "#020617", color: "#e2e8f0" }}
+                            >
+                              <option value="open">Open</option>
+                              <option value="investigating">Investigating</option>
+                              <option value="resolved">Resolved</option>
+                              <option value="closed">Closed</option>
+                            </select>
+                            <select
+                              value={incident.assigned_to || ""}
+                              onChange={(e) => assignIncident(incident.id, e.target.value || null)}
+                              style={{ flex: 1, padding: 12, borderRadius: 12, border: "1px solid #334155", background: "#020617", color: "#e2e8f0" }}
+                            >
+                              <option value="">Unassigned</option>
+                              {users.map((user) => (
+                                <option key={user.id} value={user.id}>{user.username} ({user.role})</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div style={{ display: "grid", gap: 10 }}>
+                            <textarea
+                              rows={4}
+                              value={noteEdits[incident.id] ?? incident.notes ?? ""}
+                              onChange={(e) => handleNoteChange(incident.id, e.target.value)}
+                              placeholder="Case notes and analyst observations"
+                              style={{ width: "100%", background: "#020617", border: "1px solid #334155", borderRadius: 14, padding: 14, color: "#e2e8f0" }}
+                            />
+                            <button
+                              onClick={() => saveIncidentNote(incident.id)}
+                              style={{ alignSelf: "flex-start", padding: "10px 16px", borderRadius: 14, border: "none", background: "#22c55e", color: "#020617", cursor: "pointer" }}
+                            >
+                              Save notes
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ color: "#94a3b8", padding: 14, borderRadius: 16, background: "#111827" }}>
+                  No incidents available. Use search or refresh to load the latest data.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "logs" && (
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 24, border: "1px solid #1e293b" }}>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "#94a3b8", fontSize: 14 }}>Live log stream</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>Monitoring events</div>
+                </div>
+                <div style={{ color: "#94a3b8" }}>Incoming feed</div>
+              </div>
+              <div style={{ maxHeight: 520, overflowY: "auto", fontFamily: "monospace" }}>
+                {logs.length ? (
+                  logs.map((log, index) => (
+                    <div key={index} style={{ marginBottom: 14, borderBottom: "1px solid #1e293b", paddingBottom: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "#64748b", fontSize: 13 }}>{log.timestamp}</span>
+                        <span style={{ color: COLORS[log.severity] || "#94a3b8", fontWeight: 700 }}>{log.severity || "INFO"}</span>
+                      </div>
+                      <div style={{ marginTop: 8, color: "#e2e8f0" }}>{log.message || log.title || "No message provided."}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: "#94a3b8" }}>Waiting for log stream data...</div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gap: 18 }}>
+              <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", marginBottom: 10, fontSize: 14 }}>Query Scan</div>
+                <input
+                  value={scanTarget}
+                  onChange={(e) => setScanTarget(e.target.value)}
+                  placeholder="Enter host, IP, or asset"
+                  style={{
+                    width: "100%",
+                    padding: 14,
+                    background: "#020617",
+                    border: "1px solid #334155",
+                    borderRadius: 14,
+                    color: "#e2e8f0",
+                    marginBottom: 14,
+                  }}
+                />
+                <button
+                  onClick={runScan}
+                  style={{
+                    width: "100%",
+                    padding: 14,
+                    borderRadius: 14,
+                    background: "#22c55e",
+                    border: "none",
+                    color: "#020617",
+                    cursor: "pointer",
+                  }}
+                >
+                  Launch scan
+                </button>
+                {scanMessage && (
+                  <div style={{ marginTop: 14, color: "#94a3b8", fontSize: 13 }}>{scanMessage}</div>
+                )}
+              </div>
+
+              <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", marginBottom: 12, fontSize: 14 }}>Active analysts</div>
+                {users.length ? (
+                  users.map((user) => (
+                    <div key={user.id} style={{ padding: "10px 0", borderBottom: "1px solid #1e293b" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span>{user.username}</span>
+                        <span style={{ color: "#94a3b8", fontSize: 13 }}>{user.role}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: "#94a3b8" }}>No active analysts found.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "threats" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 240, background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", marginBottom: 8 }}>Threat feed</div>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>Live indicators</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 240, background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", marginBottom: 8 }}>Threat categories</div>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>{threats.length}</div>
+              </div>
+            </div>
+
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 18 }}>
+                <div>
+                  <div style={{ color: "#94a3b8", fontSize: 14 }}>Threat intelligence</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>Latest indicators</div>
+                </div>
+                <button
+                  onClick={loadThreats}
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: 12,
+                    border: "1px solid #334155",
+                    background: "#111827",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                  }}
+                >
+                  Reload
+                </button>
+              </div>
+              <div style={{ display: "grid", gap: 12, marginBottom: 16 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <input
+                    value={tiQuery}
+                    onChange={(e) => setTiQuery(e.target.value)}
+                    placeholder="Lookup IP in AbuseIPDB"
+                    style={{
+                      flex: 1,
+                      padding: 14,
+                      borderRadius: 14,
+                      background: "#020617",
+                      border: "1px solid #334155",
+                      color: "#e2e8f0",
+                    }}
+                  />
+                  <button
+                    onClick={lookupAbuseIPDB}
+                    style={{
+                      padding: "14px 18px",
+                      borderRadius: 14,
+                      border: "none",
+                      background: "#22c55e",
+                      color: "#020617",
+                      cursor: "pointer",
+                    }}
+                  >
+                    AbuseIPDB lookup
+                  </button>
+                </div>
+                {tiStatus && <div style={{ color: "#94a3b8", fontSize: 13 }}>{tiStatus}</div>}
+                {tiResult && (
+                  <div style={{ background: "#020617", border: "1px solid #334155", borderRadius: 16, padding: 16 }}>
+                    <div style={{ color: "#94a3b8", marginBottom: 10, fontSize: 13 }}>Threat intelligence lookup result</div>
+                    <div style={{ display: "grid", gap: 8, color: "#e2e8f0", fontSize: 14 }}>
+                      <div><strong>IP:</strong> {tiResult.ip}</div>
+                      <div><strong>Source:</strong> {tiResult.source}</div>
+                      <div><strong>Score:</strong> {tiResult.abuse_confidence_score ?? "n/a"}</div>
+                      <div><strong>Country:</strong> {tiResult.country || "n/a"}</div>
+                      <div><strong>Reports:</strong> {tiResult.report_count ?? "n/a"}</div>
+                      {tiResult.message && <div style={{ color: "#94a3b8" }}>{tiResult.message}</div>}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div style={{ maxHeight: 520, overflowY: "auto" }}>
+                {threats.length ? (
+                  threats.map((threat) => (
+                    <div key={threat.id} style={{ padding: "14px 0", borderBottom: "1px solid #1e293b" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+                        <div>
+                          <strong>{threat.indicator}</strong>
+                          <div style={{ color: "#94a3b8", fontSize: 13 }}>{threat.type}</div>
+                        </div>
+                        <span style={{ color: COLORS[threat.severity] || "#94a3b8", fontWeight: 700 }}>{threat.severity}</span>
+                      </div>
+                      <div style={{ color: "#64748b", marginTop: 8, fontSize: 13 }}>{threat.source || "Unknown source"}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: "#94a3b8" }}>No threat indicators loaded yet.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "soar" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
+              {[
+                { title: "Containment", description: "Block suspicious IPs and isolate affected hosts.", action: "Containment workflow", color: "#ef4444" },
+                { title: "Investigation", description: "Collect evidence and enrich with threat intel.", action: "Investigation workflow", color: "#60a5fa" },
+                { title: "Escalation", description: "Escalate critical incidents to operations.", action: "Escalation workflow", color: "#f59e0b" },
+              ].map((workflow) => (
+                <div key={workflow.title} style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                  <div style={{ color: "#94a3b8", marginBottom: 10 }}>{workflow.title}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>{workflow.description}</div>
+                  <button
+                    onClick={() => launchWorkflow(workflow.action)}
+                    disabled={isViewer}
+                    style={{
+                      marginTop: 12,
+                      padding: "12px 16px",
+                      borderRadius: 14,
+                      border: "none",
+                      background: isViewer ? "#334155" : workflow.color,
+                      color: "#020617",
+                      cursor: isViewer ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    Run {workflow.title}
+                  </button>
+                </div>
               ))}
+            </div>
+
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ color: "#94a3b8", fontSize: 14, marginBottom: 10 }}>Automation status</div>
+              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Current workflow</div>
+              <div style={{ color: "#e2e8f0", lineHeight: 1.7 }}>{workflowNote}</div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ color: "#94a3b8", marginBottom: 10 }}>Account & session</div>
+              <div style={{ display: "grid", gap: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#e2e8f0" }}>
+                  <span>Signed in as</span>
+                  <strong>{auth.role || "analyst"}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                  <span>API host</span>
+                  <span>{API}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ color: "#94a3b8", marginBottom: 10 }}>Support</div>
+              <div style={{ color: "#e2e8f0", lineHeight: 1.7 }}>
+                Update backend configuration, verify tokens, or contact your SOC administrator for additional access.
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* CHARTS */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20,
-          marginBottom: 20,
-        }}
-      >
-
-        {/* PIE CHART */}
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 12,
-          }}
-        >
-
-          <h2 style={{ color: "#22c55e" }}>
-            Severity Distribution
-          </h2>
-
-          <ResponsiveContainer width="100%" height={300}>
-
-            <PieChart>
-
-              <Pie
-                data={pieData}
-                dataKey="value"
-                outerRadius={100}
-                label
-              >
-
-                {pieData.map((entry, index) => (
-
-                  <Cell
-                    key={index}
-                    fill={COLORS[entry.name]}
-                  />
-                ))}
-
-              </Pie>
-
-              <Tooltip />
-
-              <Legend />
-
-            </PieChart>
-
-          </ResponsiveContainer>
-
-        </div>
-
-        {/* LINE CHART */}
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 12,
-          }}
-        >
-
-          <h2 style={{ color: "#22c55e" }}>
-            Threat Trends
-          </h2>
-
-          <ResponsiveContainer width="100%" height={300}>
-
-            <LineChart data={trends}>
-
-              <CartesianGrid stroke="#1e293b" />
-
-              <XAxis
-                dataKey="time"
-                stroke="#94a3b8"
-              />
-
-              <YAxis stroke="#94a3b8" />
-
-              <Tooltip />
-
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#22c55e"
-                strokeWidth={3}
-              />
-
-            </LineChart>
-
-          </ResponsiveContainer>
-
-        </div>
-
-      </div>
-
-      {/* ADDITIONAL CHARTS */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20,
-          marginBottom: 20,
-        }}
-      >
-
-        {/* HEATMAP CHART */}
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 12,
-          }}
-        >
-          <h2 style={{ color: "#22c55e" }}>
-            Incident Heatmap (Day/Hour)
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={heatmapData}>
-              <CartesianGrid stroke="#1e293b" />
-              <XAxis dataKey="day" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip />
-              <Legend />
-              {Array.from({length: 24}, (_, i) => (
-                <Bar key={i} dataKey={`hour_${i}`} stackId="a" fill={`hsl(${i * 15}, 70%, 50%)`} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* TIMELINE CHART */}
-        <div
-          style={{
-            background: "#0f172a",
-            padding: 20,
-            borderRadius: 12,
-          }}
-        >
-          <h2 style={{ color: "#22c55e" }}>
-            Incident Timeline
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={trends}>
-              <CartesianGrid stroke="#1e293b" />
-              <XAxis dataKey="time" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#22c55e"
-                fill="#22c55e"
-                fillOpacity={0.3}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-      </div>
-
-      {/* INCIDENTS */}
-      <div
-        style={{
-          background: "#0f172a",
-          padding: 20,
-          borderRadius: 12,
-          marginBottom: 20,
-        }}
-      >
-
-        <h2 style={{ color: "#22c55e" }}>
-          Live Incidents
-        </h2>
-
-        {incidents.map((incident, index) => (
-
-          <div
-            key={index}
-
-            style={{
-              background: "#020617",
-              padding: 15,
-              marginTop: 10,
-              borderRadius: 8,
-
-              borderLeft: `5px solid ${
-                COLORS[incident.severity]
-              }`,
-            }}
-          >
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-
-              <strong>
-                {incident.title}
-              </strong>
-
-              <span
-                style={{
-                  color:
-                    COLORS[incident.severity],
-                }}
-              >
-                {incident.severity}
-              </span>
-
-            </div>
-
-            <div
-              style={{
-                color: "#94a3b8",
-                marginTop: 5,
-              }}
-            >
-              {incident.time}
-            </div>
-
-            <div
-              style={{
-                marginTop: 10,
-                color: "#e2e8f0",
-              }}
-            >
-              {incident.details}
-            </div>
-
-          </div>
-        ))}
-
-      </div>
-
-      {/* LOGS */}
-      <div
-        style={{
-          background: "#020617",
-          padding: 20,
-          borderRadius: 12,
-          height: 250,
-          overflowY: "auto",
-          fontFamily: "monospace",
-        }}
-      >
-
-        <h2 style={{ color: "#22c55e" }}>
-          Live Logs
-        </h2>
-
-        {logs.map((log, index) => (
-
-          <div
-            key={index}
-
-            style={{
-              marginTop: 10,
-              borderBottom:
-                "1px solid #1e293b",
-
-              paddingBottom: 8,
-            }}
-          >
-
-            <span
-              style={{
-                color: "#64748b",
-              }}
-            >
-              [{log.timestamp}]
-            </span>
-
-            {" "}
-
-            <span
-              style={{
-                color:
-                  COLORS[log.severity],
-              }}
-            >
-              {log.severity}
-            </span>
-
-            {" → "}
-
-            <span>
-              {log.title}
-            </span>
-
-          </div>
-        ))}
-
-      </div>
-
     </div>
   );
 }
