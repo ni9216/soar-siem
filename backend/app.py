@@ -10,6 +10,10 @@ import threading
 import time
 from collections import deque
 import os
+import sys
+
+# Add current directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import text
 from models import db, Incident, User, ThreatFeed

@@ -111,18 +111,6 @@ def get_trends():
     return jsonify(trends)
 
 
-@incidents_bp.route("/users", methods=["GET"])
-@jwt_required()
-@role_required('admin', 'analyst', 'viewer')
-def get_users():
-    users = User.query.all()
-    return jsonify([{
-        'id': u.id,
-        'username': u.username,
-        'role': u.role
-    } for u in users])
-
-
 @incidents_bp.route("/search", methods=["GET"])
 @jwt_required()
 def search_incidents():

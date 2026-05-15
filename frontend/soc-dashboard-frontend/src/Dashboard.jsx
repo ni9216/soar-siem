@@ -65,8 +65,9 @@ export default function Dashboard({ auth, onLogout }) {
   const [tiResult, setTiResult] = useState(null);
   const [tiStatus, setTiStatus] = useState("");
   const [authError, setAuthError] = useState("");
-  const [socket, setSocket] = useState(null);
-  const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
+  const [socket, setSocket] = useState(null);  const [newUser, setNewUser] = useState({ username: "", password: "", role: "analyst" });
+  const [editingUser, setEditingUser] = useState(null);
+  const [userMessage, setUserMessage] = useState("");  const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
   const isViewer = auth?.role === "viewer";
   const availableTabs = tabs.filter(tab => !tab.adminOnly || auth?.role === "admin");
 
@@ -248,6 +249,83 @@ export default function Dashboard({ auth, onLogout }) {
     triggerPlaybook(workflow);
   };
 
+  const createUser = async () => {
+    if (!newUser.username || !newUser.password) {
+      setUserMessage("Username and password are required.");
+      return;
+    }
+
+    try {
+      const response = await fetchWithAuth("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      if (!response) return;
+
+      if (response.ok) {
+        setUserMessage("User created successfully.");
+        setNewUser({ username: "", password: "", role: "analyst" });
+        loadUsers();
+      } else {
+        const data = await response.json();
+        setUserMessage(data.error || "Failed to create user.");
+      }
+    } catch (error) {
+      setUserMessage("Failed to create user.");
+    }
+  };
+
+  const updateUser = async (userId, updates) => {
+    try {
+      const response = await fetchWithAuth(`/api/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response) return;
+
+      if (response.ok) {
+        setUserMessage("User updated successfully.");
+        setEditingUser(null);
+        loadUsers();
+      } else {
+        const data = await response.json();
+        setUserMessage(data.error || "Failed to update user.");
+      }
+    } catch (error) {
+      setUserMessage("Failed to update user.");
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+
+    try {
+      const response = await fetchWithAuth(`/api/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response) return;
+
+      if (response.ok) {
+        setUserMessage("User deleted successfully.");
+        loadUsers();
+      } else {
+        const data = await response.json();
+        setUserMessage(data.error || "Failed to delete user.");
+      }
+    } catch (error) {
+      setUserMessage("Failed to delete user.");
+    }
+  };
+
   const totalIncidents = incidents.length;
   const totalThreats = threats.length;
   const totalLogs = logs.length;
@@ -300,7 +378,7 @@ export default function Dashboard({ auth, onLogout }) {
   }, [auth.token]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#020617", color: "#e2e8f0", fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: isViewer ? "#0f1419" : "#020617", color: "#e2e8f0", fontFamily: "Inter, system-ui, sans-serif" }}>
       <div
         style={{
           maxWidth: 1400,
@@ -317,8 +395,12 @@ export default function Dashboard({ auth, onLogout }) {
           }}
         >
           <div>
-            <div style={{ color: "#22c55e", fontWeight: 800, fontSize: 18 }}>SOC Command Center</div>
-            <h1 style={{ margin: "10px 0 2px", fontSize: 32 }}>Security Operations Dashboard</h1>
+            <div style={{ color: isViewer ? "#3b82f6" : "#22c55e", fontWeight: 800, fontSize: 18 }}>
+              {isViewer ? "SOC Monitoring Dashboard" : "SOC Command Center"}
+            </div>
+            <h1 style={{ margin: "10px 0 2px", fontSize: 32 }}>
+              {isViewer ? "Security Operations Monitoring" : "Security Operations Dashboard"}
+            </h1>
             <div style={{ color: "#94a3b8", fontSize: 14 }}>
               Logged in as <strong>{auth.role || "analyst"}</strong>
             </div>
@@ -354,7 +436,7 @@ export default function Dashboard({ auth, onLogout }) {
               fontWeight: 600,
             }}
           >
-            Viewer Mode: Read-only access to dashboard data.
+            👁️ Viewer Mode: Read-only monitoring access to security operations data.
           </div>
         )}
 
@@ -380,9 +462,9 @@ export default function Dashboard({ auth, onLogout }) {
               style={{
                 padding: "12px 18px",
                 borderRadius: 999,
-                border: activeTab === tab.id ? "1px solid #22c55e" : "1px solid #334155",
+                border: activeTab === tab.id ? `1px solid ${isViewer ? "#3b82f6" : "#22c55e"}` : "1px solid #334155",
                 background: activeTab === tab.id ? "#111827" : "#0f172a",
-                color: activeTab === tab.id ? "#22c55e" : "#94a3b8",
+                color: activeTab === tab.id ? (isViewer ? "#3b82f6" : "#22c55e") : "#94a3b8",
                 cursor: "pointer",
               }}
             >
@@ -416,7 +498,7 @@ export default function Dashboard({ auth, onLogout }) {
                       <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
                       <YAxis tick={{ fill: '#94a3b8' }} />
                       <Tooltip cursor={{ fill: '#0f172a' }} />
-                      <Bar dataKey="count" fill="#22c55e" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="count" fill={isViewer ? "#3b82f6" : "#22c55e"} radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -463,7 +545,7 @@ export default function Dashboard({ auth, onLogout }) {
                   style={{
                     padding: "14px 18px",
                     borderRadius: 14,
-                    background: "#22c55e",
+                    background: isViewer ? "#3b82f6" : "#22c55e",
                     border: "none",
                     color: "#020617",
                     cursor: "pointer",
@@ -548,7 +630,7 @@ export default function Dashboard({ auth, onLogout }) {
                             />
                             <button
                               onClick={() => saveIncidentNote(incident.id)}
-                              style={{ alignSelf: "flex-start", padding: "10px 16px", borderRadius: 14, border: "none", background: "#22c55e", color: "#020617", cursor: "pointer" }}
+                              style={{ alignSelf: "flex-start", padding: "10px 16px", borderRadius: 14, border: "none", background: isViewer ? "#3b82f6" : "#22c55e", color: "#020617", cursor: "pointer" }}
                             >
                               Save notes
                             </button>
@@ -617,7 +699,7 @@ export default function Dashboard({ auth, onLogout }) {
                     width: "100%",
                     padding: 14,
                     borderRadius: 14,
-                    background: "#22c55e",
+                    background: isViewer ? "#3b82f6" : "#22c55e",
                     border: "none",
                     color: "#020617",
                     cursor: "pointer",
@@ -703,7 +785,7 @@ export default function Dashboard({ auth, onLogout }) {
                       padding: "14px 18px",
                       borderRadius: 14,
                       border: "none",
-                      background: "#22c55e",
+                      background: isViewer ? "#3b82f6" : "#22c55e",
                       color: "#020617",
                       cursor: "pointer",
                     }}
@@ -783,6 +865,237 @@ export default function Dashboard({ auth, onLogout }) {
               <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Current workflow</div>
               <div style={{ color: "#e2e8f0", lineHeight: 1.7 }}>{workflowNote}</div>
             </div>
+          </div>
+        )}
+
+        {activeTab === "users" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ color: "#94a3b8", marginBottom: 18, fontSize: 14 }}>Create new user</div>
+              <div style={{ display: "grid", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    style={{
+                      padding: 14,
+                      borderRadius: 14,
+                      background: "#020617",
+                      border: "1px solid #334155",
+                      color: "#e2e8f0",
+                    }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    style={{
+                      padding: 14,
+                      borderRadius: 14,
+                      background: "#020617",
+                      border: "1px solid #334155",
+                      color: "#e2e8f0",
+                    }}
+                  />
+                  <select
+                    value={newUser.role}
+                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                    style={{
+                      padding: 14,
+                      borderRadius: 14,
+                      background: "#020617",
+                      border: "1px solid #334155",
+                      color: "#e2e8f0",
+                    }}
+                  >
+                    <option value="viewer">Viewer</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <button
+                  onClick={createUser}
+                  style={{
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    background: "#22c55e",
+                    border: "none",
+                    color: "#020617",
+                    cursor: "pointer",
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  Create User
+                </button>
+              </div>
+              {userMessage && (
+                <div style={{ marginTop: 14, color: userMessage.includes("success") ? "#22c55e" : "#ef4444", fontSize: 14 }}>
+                  {userMessage}
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+                <div>
+                  <div style={{ color: "#94a3b8", fontSize: 14 }}>User management</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>All users ({users.length})</div>
+                </div>
+                <button
+                  onClick={loadUsers}
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: 12,
+                    border: "1px solid #334155",
+                    background: "#111827",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                  }}
+                >
+                  Refresh
+                </button>
+              </div>
+              <div style={{ display: "grid", gap: 12 }}>
+                {users.length ? (
+                  users.map((user) => (
+                    <div
+                      key={user.id}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr auto auto",
+                        gap: 12,
+                        alignItems: "center",
+                        padding: 16,
+                        background: "#020617",
+                        borderRadius: 12,
+                        border: "1px solid #1e293b",
+                      }}
+                    >
+                      <div>
+                        <div style={{ color: "#e2e8f0", fontWeight: 600 }}>{user.username}</div>
+                        <div style={{ color: "#94a3b8", fontSize: 13 }}>
+                          Role: {user.role}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          border: "1px solid #334155",
+                          background: "#111827",
+                          color: "#94a3b8",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteUser(user.id)}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          border: "1px solid #ef4444",
+                          background: "#7f1d1d",
+                          color: "#fee2e2",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: "#94a3b8" }}>No users found.</div>
+                )}
+              </div>
+            </div>
+
+            {editingUser && (
+              <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", marginBottom: 18, fontSize: 14 }}>Edit user: {editingUser.username}</div>
+                <div style={{ display: "grid", gap: 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                    <input
+                      type="text"
+                      placeholder="New username"
+                      value={editingUser.username}
+                      onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        background: "#020617",
+                        border: "1px solid #334155",
+                        color: "#e2e8f0",
+                      }}
+                    />
+                    <input
+                      type="password"
+                      placeholder="New password (leave empty to keep current)"
+                      value={editingUser.password || ""}
+                      onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        background: "#020617",
+                        border: "1px solid #334155",
+                        color: "#e2e8f0",
+                      }}
+                    />
+                    <select
+                      value={editingUser.role}
+                      onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        background: "#020617",
+                        border: "1px solid #334155",
+                        color: "#e2e8f0",
+                      }}
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="analyst">Analyst</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button
+                      onClick={() => updateUser(editingUser.id, {
+                        username: editingUser.username,
+                        password: editingUser.password || undefined,
+                        role: editingUser.role
+                      })}
+                      style={{
+                        padding: "14px 18px",
+                        borderRadius: 14,
+                        background: "#22c55e",
+                        border: "none",
+                        color: "#020617",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Update User
+                    </button>
+                    <button
+                      onClick={() => setEditingUser(null)}
+                      style={{
+                        padding: "14px 18px",
+                        borderRadius: 14,
+                        border: "1px solid #334155",
+                        background: "#111827",
+                        color: "#94a3b8",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
