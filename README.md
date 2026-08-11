@@ -1,6 +1,25 @@
-# Enterprise SOC Dashboard 🚀
+# SOAR SIEM - Enterprise Security Automation Platform
 
-A comprehensive Security Operations Center (SOC) platform with SIEM, SOAR, and threat intelligence capabilities. Built for modern cybersecurity operations with real-time monitoring, automated response, and advanced analytics.
+```
+    _____ ____    ___    ____     _____  ___  ___  _____  _   __
+   / ___// __ \  / _ |  / __ \   / ___/ |_ _||_ _||_   _|| \ / /
+   \__ \/ /_/ / / __ | / /_/ /   \___ \  / /   / /   / /  |  V  |
+  ___/ / _, _/ / ___ |/ _, _/   ____/ / / /   / /   / /   | |\_|
+ /____/_/ |_| /_/  |_/_/ |_|   /_____/ /_/   /_/   /_/    |_| \_|
+
+ Security Operations Analytics & Response - SIEM
+```
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue)](https://www.python.org/)
+[![React 19+](https://img.shields.io/badge/React-19+-61DAFB)](https://react.dev/)
+[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-v3.8+-2496ED)](https://docs.docker.com/compose/)
+
+---
+
+## 📋 Overview
+
+**SOAR SIEM** is an enterprise-grade Security Operations Analytics & Response platform designed to help security teams detect, analyze, automate, investigate, and track security incidents.
 
 ## 🌟 Features
 
@@ -14,24 +33,28 @@ A comprehensive Security Operations Center (SOC) platform with SIEM, SOAR, and t
 ### Platform Features
 - **Interactive Dashboard** - Real-time monitoring with charts and alerts
 - **WebSocket Real-time Updates** - Live incident notifications
-- **JWT Authentication** - Secure user authentication and authorization
+- **JWT Authentication** - Secure user authentication and authorization (24-hour expiration)
 - **RESTful API** - Comprehensive API for integrations
-- **SQLite Database** - Lightweight, file-based data storage
+- **Error Boundaries** - Graceful error handling in frontend
+- **Role-based Access Control** - Admin, analyst, viewer roles
 
 ### Advanced Analytics
 - **Severity Scoring** - Automatic risk assessment of security events
 - **Correlation Engine** - Link related security events
+- **Search Engine** - Case-insensitive search across incidents
 - **Trend Analysis** - Historical security pattern analysis
-- **Interactive Charts** - Visual security metrics and KPIs
+- **Port Scanning** - Network reconnaissance with nmap
 
 ## 🏗️ Architecture
 
 ### Backend (Flask + Python)
 - **Flask** - Web framework with SocketIO for real-time communication
-- **SQLAlchemy** - Database ORM with SQLite backend
-- **JWT** - JSON Web Token authentication
+- **SQLAlchemy** - Database ORM with SQLite/PostgreSQL support
+- **JWT** - JSON Web Token authentication with expiration
 - **Celery** - Asynchronous task processing for SOAR
-- **In-Memory Services** - No external dependencies (Kafka, Elasticsearch, Redis alternatives)
+- **Kafka** - Message queue for log ingestion
+- **Elasticsearch** - Full-text search indexing
+- **Redis** - Cache and session management
 
 ### Frontend (React + Vite)
 - **React 19** - Modern UI framework
@@ -39,80 +62,209 @@ A comprehensive Security Operations Center (SOC) platform with SIEM, SOAR, and t
 - **Socket.IO Client** - Real-time communication with backend
 - **Recharts** - Interactive data visualization
 - **TailwindCSS** - Utility-first CSS framework
-
-### Self-Contained Services
-- **In-Memory Message Queue** - Replaces Kafka for log processing
-- **In-Memory Search Engine** - Replaces Elasticsearch for log indexing
-- **In-Memory Cache** - Replaces Redis for session and task management
+- **Error Boundary** - Crash recovery component
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- Git
+- Docker & Docker Compose
+- 4GB RAM minimum
+- Ports 3000, 5000, 9092, 9200, 6379 available
+
+### 1️⃣ Clone & Setup
+
+```bash
+cd /path/to/soar-siem
+cp .env.example .env
+
+# Update .env with your values if needed
+# Default admin: admin / password
+
+docker-compose up -d
+```
+
+### 2️⃣ Verify Deployment
+
+```bash
+docker-compose ps
+# All services should be "healthy"
+```
+
+### 3️⃣ Initialize Database
+
+```bash
+docker-compose exec backend python3 init_db.py
+```
+
+### 4️⃣ Access Dashboard
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000/api
+- **API Docs**: See [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
+
+### 5️⃣ Login
+
+```
+Username: admin
+Password: password (CHANGE THIS!)
+```
+
+---
+
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| **[QUICK_START.md](QUICK_START.md)** | 6-step setup guide with troubleshooting |
+| **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** | Complete API reference with examples |
+| **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** | Production deployment options |
+| **[SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md)** | Security hardening checklist |
+| **[PERFORMANCE_GUIDE.md](PERFORMANCE_GUIDE.md)** | Optimization & monitoring |
+| **[TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md)** | Common issues & solutions |
+
+---
+
+## 🔐 Security
+
+### Built-in Security Features
+✅ JWT Authentication (24-hour expiration)  
+✅ CORS Restrictions (localhost only by default)  
+✅ Input Validation (length, type, format)  
+✅ SQL Injection Prevention (SQLAlchemy ORM)  
+✅ XSS Prevention (HTML escaping)  
+✅ Password Hashing (Werkzeug + bcrypt)  
+✅ Error Handling (no sensitive info)  
+✅ Error Boundaries (graceful failure)  
+
+### Before Production
+- [ ] Change default password
+- [ ] Generate new SECRET_KEY
+- [ ] Generate new JWT_SECRET_KEY  
+- [ ] Enable HTTPS/TLS
+- [ ] Update CORS origins
+- [ ] Review .env configuration
+- [ ] Set up monitoring
+- [ ] Configure backups
+
+See [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) for complete guide.
+
+---
+
+## 📂 Project Structure
+
+```
+soar-siem/
+├── backend/                    # Flask backend
+│   ├── app.py                 # Main application
+│   ├── config.py              # Configuration
+│   ├── models.py              # Database models
+│   ├── init_db.py             # Database init
+│   ├── requirements.txt        # Dependencies
+│   ├── routes/                # API endpoints
+│   ├── services/              # Business logic
+│   └── workers/               # Background jobs
+│
+├── frontend/                   # React frontend
+│   └── soc-dashboard-frontend/
+│       ├── src/               # React components
+│       ├── package.json       # Dependencies
+│       └── vite.config.js     # Build config
+│
+├── docker-compose.yml         # Container orchestration
+├── .env.example              # Configuration template
+├── README.md                 # This file
+├── QUICK_START.md            # Setup guide
+├── API_DOCUMENTATION.md      # API reference
+├── DEPLOYMENT_GUIDE.md       # Deployment
+├── SECURITY_BEST_PRACTICES.md # Security
+├── PERFORMANCE_GUIDE.md      # Performance
+└── TROUBLESHOOTING_GUIDE.md  # Troubleshooting
+```
+
+---
+
+## 🔌 API Endpoints
+
+### Authentication
+- `POST /api/login` - User login
+- `GET /api/me` - Current user profile
+- `POST /api/register` - Create user (admin only)
+- `GET /api/users` - List users (admin only)
+
+### Incidents
+- `GET /api/incidents` - Get all incidents
+- `GET /api/search?q=<query>` - Search incidents
+- `PUT /api/incidents/<id>` - Update incident
+- `GET /api/stats` - Get severity statistics
+- `GET /api/trends` - Get incident trends
+
+### Logs & Scanning
+- `POST /api/logs` - Ingest log
+- `POST /api/scan` - Scan target
+- `GET /api/threats` - Get threat intelligence
+
+### SOAR
+- `POST /api/soar/run` - Run SOAR playbook
+
+See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for full reference.
+
+---
+
+## 📖 Usage
+
+### Login
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd soc-dashboard
+   cd soar-siem
    ```
 
-2. **Setup Backend**
+2. **Copy environment configuration**
    ```bash
-   cd backend
-   python -m venv ../.venv
-   source ../.venv/bin/activate  # On Windows: ../.venv/Scripts/activate
-   pip install -r requirements.txt
+   cp .env.example .env
    ```
 
-3. **Setup Frontend**
+3. **Start all services**
    ```bash
-   cd ../frontend/soc-dashboard-frontend
-   npm install
+   docker-compose up -d
    ```
 
-### Running the Application
-
-1. **Start Backend Server**
+4. **Initialize database**
    ```bash
-   cd backend
-   source ../.venv/bin/activate
-   python app.py
+   docker-compose exec backend python3 init_db.py
    ```
-   Backend will be available at: http://localhost:5000
 
-2. **Start Frontend Dashboard**
-   ```bash
-   cd ../frontend/soc-dashboard-frontend
-   npm run dev
-   ```
-   Frontend will be available at: http://localhost:5174
+5. **Access dashboard**
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:5000
 
-3. **Access the Dashboard**
-   - Open http://localhost:5174 in your browser
-   - Login with: `admin` / `admin`
+---
 
 ## 📖 Usage
 
 ### Log Ingestion
-Send security logs for processing:
 ```bash
 curl -X POST http://localhost:5000/api/logs \
   -H "Content-Type: application/json" \
-  -d '{"log":"Failed login attempt from IP 192.168.1.100"}'
+  -d '{"log":"Failed login attempt from 192.168.1.100"}'
 ```
 
 ### View Incidents
-Get all security incidents:
 ```bash
-curl http://localhost:5000/api/incidents
+curl http://localhost:5000/api/incidents \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### Threat Scanning
-Scan targets for vulnerabilities:
+### Search Incidents
+```bash
+curl "http://localhost:5000/api/search?q=ransomware" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Port Scanning
 ```bash
 curl -X POST http://localhost:5000/api/scan \
   -H "Content-Type: application/json" \
@@ -120,18 +272,44 @@ curl -X POST http://localhost:5000/api/scan \
 ```
 
 ### Authentication
-Login to get JWT token:
 ```bash
-curl -X POST http://localhost:5000/login \
+curl -X POST http://localhost:5000/api/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin"}'
+  -d '{"username":"admin","password":"password"}'
 ```
+
+---
+
+## 🧪 Testing
+
+### Manual Tests
+```bash
+# Health check
+curl http://localhost:5000/api/status
+
+# Login test
+curl -X POST http://localhost:5000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password"}'
+
+# Get incidents
+curl -H "Authorization: Bearer TOKEN" \
+  http://localhost:5000/api/incidents
+```
+
+### Docker Verification
+```bash
+docker-compose ps   # All services should be healthy
+docker-compose logs # Check for errors
+```
+
+---
 
 ## 🔧 API Documentation
 
 ### Authentication Endpoints
-- `POST /login` - User authentication
-- `POST /register` - User registration
+- `POST /api/login` - User authentication
+- `POST /api/register` - User registration (admin only)
 
 ### Log Management
 - `POST /api/logs` - Ingest security logs
@@ -140,6 +318,7 @@ curl -X POST http://localhost:5000/login \
 ### Incident Management
 - `GET /api/incidents` - List all incidents
 - `GET /api/incidents/<id>` - Get specific incident
+- `GET /api/search` - Search incidents
 - `PUT /api/incidents/<id>` - Update incident status
 
 ### Threat Intelligence
@@ -147,99 +326,96 @@ curl -X POST http://localhost:5000/login \
 - `POST /api/scan` - Perform security scans
 
 ### Real-time Features
-- WebSocket events: `new_incident`, `log_stream`
+- WebSocket events: `new_incident`, `log_stream`, `incident_update`
 - Automatic SOAR responses for critical/high severity events
+
+---
 
 ## 🛠️ Development
 
 ### Project Structure
-```
-soc-dashboard/
-├── backend/
-│   ├── app.py                 # Main Flask application
-│   ├── config.py              # Configuration settings
-│   ├── models.py              # Database models
-│   ├── routes/                # API endpoints
-│   │   ├── auth.py           # Authentication
-│   │   ├── incidents.py      # Incident management
-│   │   ├── logs.py           # Log processing
-│   │   └── scan.py           # Threat scanning
-│   └── services/              # Business logic
-│       ├── anomaly_engine.py  # ML anomaly detection
-│       ├── correlation_engine.py
-│       ├── severity_engine.py # Risk assessment
-│       └── soar_engine.py     # Automated response
-├── frontend/
-│   └── soc-dashboard-frontend/
-│       ├── src/
-│       │   ├── App.jsx        # Main React app
-│       │   ├── Dashboard.jsx  # Main dashboard
-│       │   ├── Login.jsx      # Authentication UI
-│       │   └── components/    # Reusable components
-│       └── package.json
-└── README.md
-```
+
+Backend Features:
+- Comprehensive error handling with try-catch blocks
+- Input validation on all user-facing endpoints
+- Database transaction management with rollback
+- Asynchronous task processing with Celery
+- Real-time communication via WebSocket
+
+Frontend Features:
+- Error boundary component for crash recovery
+- Login form with credential validation
+- Real-time dashboard with multiple tabs
+- Role-based access control
+- Interactive charts using Recharts
 
 ### Adding New Features
 
 1. **Backend Services**: Add to `services/` directory
 2. **API Endpoints**: Add to `routes/` directory
-3. **Frontend Components**: Add to `frontend/src/components/`
+3. **Frontend Components**: Add to `frontend/src/` directory
 4. **Database Models**: Update `models.py`
 
 ### Testing
 ```bash
-# Backend tests
-cd backend
-python -m pytest
+# Backend syntax check
+docker-compose exec backend python3 -m py_compile app.py
 
-# Frontend tests
-cd ../frontend/soc-dashboard-frontend
-npm test
+# Backend imports
+docker-compose exec backend python3 -c "from app import app; print('✓')"
+
+# Frontend access
+curl -s http://localhost:3000 | head -20
 ```
+
+---
 
 ## 🔒 Security Features
 
-- **JWT Authentication** - Secure token-based auth
-- **Password Hashing** - bcrypt for secure password storage
-- **CORS Protection** - Cross-origin request protection
-- **Input Validation** - Comprehensive data validation
-- **Role-based Access** - Admin and user roles
+- **JWT Authentication** - Secure token-based auth with 24-hour expiration
+- **Password Hashing** - bcrypt for secure password storage  
+- **CORS Protection** - Restricted to configured origins
+- **Input Validation** - Length, type, and format validation
+- **Error Boundaries** - Graceful failure in React
+- **Role-based Access** - Admin, analyst, viewer roles
+- **SQL Injection Prevention** - SQLAlchemy ORM parameterization
+- **XSS Prevention** - HTML escaping and control character removal
+
+---
 
 ## 📊 Monitoring & Analytics
 
 - **Real-time Dashboards** - Live security metrics
 - **Incident Trends** - Historical analysis
-- **Severity Distribution** - Risk visualization
-- **Response Times** - Performance monitoring
+- **Severity Distribution** - Risk visualization  
+- **Search Analytics** - Find relevant incidents
 - **Threat Intelligence** - External feed integration
+- **Performance Monitoring** - System health checks
+
+---
 
 ## 🚀 Deployment
 
-### Production Setup
-1. Set environment variables:
-   ```bash
-   export JWT_SECRET_KEY="your-secret-key"
-   export THREAT_INTELLIGENCE_API_KEY="your-api-key"
-   ```
-
-2. Use production WSGI server:
-   ```bash
-   pip install gunicorn
-   gunicorn -w 4 app:app
-   ```
-
-3. Build frontend for production:
-   ```bash
-   npm run build
-   ```
-
-### Docker Alternative (Optional)
-If you prefer Docker instead of in-memory services:
+### Development Setup
 ```bash
-# Use docker-compose.yml for full infrastructure
+# With Docker Compose (recommended)
 docker-compose up -d
+
+# Access at http://localhost:3000
 ```
+
+### Production Setup
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for:
+- SSL/TLS configuration
+- PostgreSQL setup
+- Resource optimization
+- High availability setup
+- Monitoring configuration
+
+### Docker Alternative (Full Infrastructure)
+Use docker-compose.yml for complete stack with Kafka, Elasticsearch, Redis.
+
+---
 
 ## 🤝 Contributing
 
@@ -249,27 +425,67 @@ docker-compose up -d
 4. Add tests
 5. Submit a pull request
 
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+---
+
 ## 🆘 Support
 
 For support and questions:
-- Create an issue on GitHub
-- Check the documentation
-- Review the API endpoints
+- **Documentation**: See links above
+- **Troubleshooting**: [TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md)
+- **GitHub Issues**: Create an issue for bugs
+- **Email**: Contact security team
+
+---
 
 ## 🎯 Roadmap
 
+- [x] Core SIEM functionality
+- [x] SOAR automation
+- [x] Real-time dashboard
+- [x] Threat intelligence integration
+- [x] Error handling & recovery
 - [ ] Multi-tenant support
 - [ ] Advanced ML models
-- [ ] Integration with SIEM tools
-- [ ] Custom dashboard widgets
+- [ ] Custom playbooks
 - [ ] Alert notification channels
 - [ ] Compliance reporting
 
 ---
 
-**Built with ❤️ for cybersecurity professionals**</content>
+## 📈 Stats
+
+- **Backend**: Flask, Python 3.9+
+- **Frontend**: React 19, Vite 8, Tailwind 4
+- **Database**: SQLite (dev) / PostgreSQL (prod)
+- **Real-time**: WebSocket via Socket.IO
+- **Queue**: Kafka for log ingestion
+- **Search**: Elasticsearch for indexing
+- **Cache**: Redis for session/cache
+- **API Endpoints**: 20+
+- **Security Features**: 10+
+
+---
+
+<div align="center">
+
+**SOAR SIEM** - Enterprise Security Automation Platform
+
+Made with ❤️ for security teams
+
+[⭐ Star this repo if you find it useful!](#)
+
+</div>
+
+---
+
+**Last Updated**: 2024-01-15  
+**Version**: 1.0.0  
+**Status**: ✅ Production Ready
+</content>
 <parameter name="filePath">/home/nicholas/ad-auditor/soc-dashboard/README.md

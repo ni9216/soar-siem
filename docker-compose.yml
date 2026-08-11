@@ -79,14 +79,32 @@ services:
       - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-ChangeMe123!}
       - THREAT_INTELLIGENCE_API_KEY=${THREAT_INTELLIGENCE_API_KEY:-}
     depends_on:
-      - kafka
-      - elasticsearch
-      - redis
+      kafka:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - ./backend:/app
-      - ./backend/db.sqlite:/app/db.sqlite
-    command: python app.py
+      - backend-db:/app
+    command: python3 app.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
 volumes:
   elasticsearch-data:
   redis-data:
+  backend-db:

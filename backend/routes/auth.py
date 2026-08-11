@@ -27,17 +27,30 @@ def role_required(*allowed_roles):
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "Request body required"}), 400
 
-    username = data.get("username")
-    password = data.get("password")
+    username = data.get("username", "").strip() if data.get("username") else ""
+    password = data.get("password", "")
+    
+    if not username or not password:
+        return jsonify({"error": "username and password required"}), 400
+    
+    if len(username) > 80 or len(password) > 256:
+        return jsonify({"error": "Invalid credentials"}), 401
 
-    user = User.query.filter_by(username=username).first()
-    if user and user.check_password(password):
-        token = user.generate_token()
-        return jsonify({
-            "token": token,
-            "role": user.role
-        })
+    try:
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            token = user.generate_token()
+            return jsonify({
+                "token": token,
+                "role": user.role
+            })
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({"error": "Authentication failed"}), 500
 
     return jsonify({
         "error": "Invalid credentials"
@@ -49,13 +62,26 @@ def login():
 def register():
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user).first()
-    if user.role != 'admin':
+    if not user or user.role != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
 
     data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-    role = data.get("role", "analyst")
+    if not data:
+        return jsonify({"error": "Request body required"}), 400
+    
+    username = data.get("username", "").strip() if data.get("username") else ""
+    password = data.get("password", "")
+    role = data.get("role", "analyst").strip().lower()
+    
+    # Validate inputs
+    if not username or not password:
+        return jsonify({"error": "username and password required"}), 400
+    
+    if len(username) > 80 or len(password) > 256:
+        return jsonify({"error": "username or password too long"}), 400
+    
+    if len(password) < 6:
+        return jsonify({"error": "password must be at least 6 characters"}), 400
 
     if role not in ['admin', 'analyst', 'viewer']:
         return jsonify({"error": "Invalid role specified"}), 400
@@ -63,10 +89,14 @@ def register():
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "User already exists"}), 400
 
-    new_user = User(username=username, role=role)
-    new_user.set_password(password)
-    db.session.add(new_user)
-    db.session.commit()
+    try:
+        new_user = User(username=username, role=role)
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to create user", "details": str(e)}), 500
 
     return jsonify({"message": "User created"}), 201
 

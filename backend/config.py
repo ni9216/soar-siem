@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -15,8 +16,9 @@ class Config:
     ELASTICSEARCH_HOST = os.getenv('ELASTICSEARCH_HOST', 'localhost')
     ELASTICSEARCH_PORT = int(os.getenv('ELASTICSEARCH_PORT', 9200))
     
-    # JWT settings
+    # JWT settings - ADD EXPIRATION
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key')
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)  # Token expires in 24 hours
     
     # Redis for Celery
     CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')

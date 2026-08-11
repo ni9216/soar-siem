@@ -96,11 +96,13 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.static_folder = 'static'
 
-CORS(app)
+# Restrict CORS to safe origins
+CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"])
 
 db.init_app(app)
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+# Restrict Socket.IO CORS
+socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"], async_mode="threading")
 
 jwt = JWTManager(app)
 
@@ -114,14 +116,19 @@ def handle_connect(auth):
         token = request.args.get('token')
 
     if not token:
+        print("Socket.IO connection rejected: no token provided")
         return False
 
     try:
+        # This will raise an exception if token is expired
         decoded = decode_token(token)
         username = decoded.get('sub') or decoded.get('identity')
-        if not username or not User.query.filter_by(username=username).first():
+        user = User.query.filter_by(username=username).first()
+        if not username or not user:
+            print(f"Socket.IO connection rejected: invalid user {username}")
             return False
-    except Exception:
+    except Exception as e:
+        print(f"Socket.IO connection rejected: invalid or expired token - {str(e)}")
         return False
 
     return True
@@ -137,12 +144,23 @@ ES_ENABLED = True
 KAFKA_ENABLED = True
 CONSUMER_ENABLED = True
 
-# Initialize Celery with in-memory broker
+# Initialize Celery with proper broker configuration
 from services.soar_engine import celery
-celery.conf.update(
-    broker_url='memory://',  # Use in-memory broker
-    result_backend='cache+memory://'
-)
+try:
+    # Try to use Redis if available, otherwise fall back to in-memory
+    celery.conf.update(
+        broker_url=os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
+        result_backend=os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0'),
+        task_serializer='json',
+        accept_content=['json'],
+        result_serializer='json',
+        timezone='UTC',
+        enable_utc=True,
+        task_track_started=True,
+        task_time_limit=30 * 60  # 30 minutes hard limit
+    )
+except Exception as e:
+    print(f"Warning: Celery broker configuration failed: {e}")
 
 
 # =========================
@@ -279,6 +297,8 @@ if __name__ == "__main__":
                     conn.execute(text("ALTER TABLE incident ADD COLUMN assigned_to INTEGER"))
                 if 'notes' not in columns:
                     conn.execute(text("ALTER TABLE incident ADD COLUMN notes TEXT DEFAULT ''"))
+                # Commit the transaction
+                conn.commit()
         except Exception as exc:
             print(f"Warning: unable to migrate incident schema automatically: {exc}")
 

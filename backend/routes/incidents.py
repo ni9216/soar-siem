@@ -15,6 +15,31 @@ def get_incidents():
     return jsonify([i.to_dict() for i in incidents])
 
 
+@incidents_bp.route("/search", methods=["GET"])
+@jwt_required()
+def search_incidents():
+    """Search incidents by title and details"""
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return jsonify({"error": "Search query 'q' parameter is required"}), 400
+    
+    if len(query) < 2:
+        return jsonify({"error": "Search query must be at least 2 characters"}), 400
+    
+    try:
+        # Search in both title and details
+        incidents = Incident.query.filter(
+            (Incident.title.ilike(f'%{query}%')) |
+            (Incident.details.ilike(f'%{query}%')) |
+            (Incident.mitre_attack_id.ilike(f'%{query}%'))
+        ).order_by(Incident.id.desc()).all()
+        
+        return jsonify([i.to_dict() for i in incidents])
+    except Exception as e:
+        return jsonify({"error": "Search failed", "details": str(e)}), 500
+
+
 @incidents_bp.route("/incidents/<int:incident_id>", methods=["PUT"])
 @jwt_required()
 @role_required('admin', 'analyst')
@@ -109,18 +134,3 @@ def get_trends():
         })
 
     return jsonify(trends)
-
-
-@incidents_bp.route("/search", methods=["GET"])
-@jwt_required()
-def search_incidents():
-    query = request.args.get('q', '')
-    if not query:
-        return jsonify([])
-
-    # Search in title and details fields
-    incidents = Incident.query.filter(
-        (Incident.title.contains(query)) | (Incident.details.contains(query))
-    ).order_by(Incident.id.desc()).all()
-
-    return jsonify([i.to_dict() for i in incidents])

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Dashboard from "./Dashboard";
 import Login from "./Login";
+import ErrorBoundary from "./ErrorBoundary";
 
 export default function App() {
   const [auth, setAuth] = useState({ token: null, role: null });
@@ -29,9 +30,13 @@ export default function App() {
     return null;
   }
 
-  if (!auth.token) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  return <Dashboard auth={auth} onLogout={handleLogout} />;
+  return (
+    <ErrorBoundary>
+      {!auth.token ? (
+        <Login onLogin={handleLogin} />
+      ) : (
+        <Dashboard auth={auth} onLogout={handleLogout} />
+      )}
+    </ErrorBoundary>
+  );
 }

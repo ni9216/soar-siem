@@ -1,12 +1,10 @@
 import { useState } from "react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const DEFAULT_USERNAME = import.meta.env.VITE_DEFAULT_ADMIN_USERNAME || "admin";
-const DEFAULT_PASSWORD = import.meta.env.VITE_DEFAULT_ADMIN_PASSWORD || "admin";
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState(DEFAULT_USERNAME);
-  const [password, setPassword] = useState(DEFAULT_PASSWORD);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
@@ -90,6 +88,9 @@ export default function Login({ onLogin }) {
           <p style={{ color: "#94a3b8", margin: 0 }}>
             Secure sign in to access analytics and automation.
           </p>
+          <div style={{ color: "#cbd5e1", fontSize: 12, marginTop: 8 }}>
+            Contact your administrator for login credentials.
+          </div>
         </div>
 
         {serverError && (
@@ -179,15 +180,12 @@ export default function Login({ onLogin }) {
           style={{
             marginTop: 20,
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "center",
             fontSize: 13,
             color: "#64748b",
           }}
         >
-          <span>
-            Default: {DEFAULT_USERNAME} / {DEFAULT_PASSWORD}
-          </span>
           <a
             href="#"
             onClick={(event) => event.preventDefault()}

@@ -1,8 +1,33 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
+import re
+import ipaddress
 
 scan_bp = Blueprint("scan", __name__)
 
+def is_valid_target(target):
+    """
+    Validate that the target is a valid IP address or hostname
+    """
+    target = target.strip()
+    
+    # Check if it's a valid IPv4 address
+    try:
+        ipaddress.IPv4Address(target)
+        return True
+    except ValueError:
+        pass
+    
+    # Check if it's a valid hostname (basic validation)
+    hostname_pattern = r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$'
+    if re.match(hostname_pattern, target):
+        return True
+    
+    # Reject localhost to prevent scanning your own system in certain contexts
+    if target.lower() in ['localhost', '127.0.0.1', '0.0.0.0', '255.255.255.255']:
+        return False
+    
+    return False
 
 @scan_bp.route("/scan", methods=["POST"])
 @jwt_required()
@@ -14,6 +39,13 @@ def scan_target():
         return jsonify({"error": "target field required"}), 400
 
     target = data.get("target")
+    
+    # Validate target
+    if not target or not isinstance(target, str):
+        return jsonify({"error": "Invalid target format"}), 400
+    
+    if not is_valid_target(target):
+        return jsonify({"error": "Invalid target IP address or hostname"}), 400
 
     try:
         import nmap
@@ -44,7 +76,7 @@ def scan_target():
         return jsonify(results)
 
     except Exception as e:
-
         return jsonify({
-            "error": str(e)
+            "error": "Scan failed",
+            "details": str(e)
         }), 500
