@@ -6,7 +6,7 @@ import re
 
 from models import db, Incident
 from services.severity_engine import severity_score
-from services.anomaly_engine import detect_anomaly
+from services.ml_models import full_analysis
 from services.mitre_mapping import map_to_mitre
 from services.soar_engine import auto_response
 
@@ -55,7 +55,8 @@ def ingest_log():
 
     try:
         severity = severity_score(log)
-        anomaly = detect_anomaly(log)
+        ml = full_analysis(log)
+        anomaly = ml['anomaly']
         mitre_id = map_to_mitre(log)
     except Exception as e:
         return jsonify({"error": "Error processing log", "details": str(e)}), 500
@@ -75,12 +76,18 @@ def ingest_log():
             time=datetime.now().strftime("%H:%M:%S"),
             mitre_attack_id=mitre_id
         )
-
         db.session.add(incident)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Error saving incident", "details": str(e)}), 500
+
+    # Run matching playbooks
+    try:
+        from routes.playbooks import run_playbook_for_incident
+        run_playbook_for_incident(incident)
+    except Exception as e:
+        print(f"Warning: Playbook execution failed: {e}")
 
     # Trigger SOAR if critical/high
     if severity in ['Critical', 'High']:

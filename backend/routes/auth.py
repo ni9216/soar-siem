@@ -43,11 +43,17 @@ def login():
     try:
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
+            # If 2FA is enabled, require TOTP code
+            if user.totp_enabled:
+                code = data.get('totp_code', '').strip()
+                if not code:
+                    return jsonify({"error": "2fa_required", "message": "Enter your 2FA code"}), 200
+                import pyotp
+                totp = pyotp.TOTP(user.totp_secret)
+                if not totp.verify(code):
+                    return jsonify({"error": "Invalid 2FA code"}), 401
             token = user.generate_token()
-            return jsonify({
-                "token": token,
-                "role": user.role
-            })
+            return jsonify({"token": token, "role": user.role})
     except Exception as e:
         print(f"Login error: {e}")
         return jsonify({"error": "Authentication failed"}), 500

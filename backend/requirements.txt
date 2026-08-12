@@ -5,6 +5,8 @@ flask-sqlalchemy
 flask-socketio
 flask-jwt-extended
 flask-limiter
+pyotp
+qrcode[pil]
 numpy
 scikit-learn
 eventlet

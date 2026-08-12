@@ -173,6 +173,8 @@ from routes.scan import scan_bp
 from routes.auth import auth_bp
 from routes.threats import threats_bp
 from routes.soar import soar_bp
+from routes.playbooks import playbooks_bp
+from routes.twofa import twofa_bp
 
 
 # =========================
@@ -184,6 +186,8 @@ app.register_blueprint(scan_bp, url_prefix="/api")
 app.register_blueprint(auth_bp, url_prefix="/api")
 app.register_blueprint(threats_bp, url_prefix="/api")
 app.register_blueprint(soar_bp, url_prefix="/api")
+app.register_blueprint(playbooks_bp, url_prefix="/api")
+app.register_blueprint(twofa_bp, url_prefix="/api")
 
 
 # =========================
@@ -245,10 +249,24 @@ if __name__ == "__main__":
                     conn.execute(text("ALTER TABLE incident ADD COLUMN assigned_to INTEGER"))
                 if 'notes' not in columns:
                     conn.execute(text("ALTER TABLE incident ADD COLUMN notes TEXT DEFAULT ''"))
-                # Commit the transaction
+
+                # Migrate user table for new features (2FA, notifications)
+                result = conn.execute(text("PRAGMA table_info(user)"))
+                user_columns = [row[1] for row in result.fetchall()]
+                if 'totp_secret' not in user_columns:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN totp_secret VARCHAR(32)"))
+                if 'totp_enabled' not in user_columns:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN totp_enabled BOOLEAN DEFAULT 0"))
+                if 'email' not in user_columns:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN email VARCHAR(120)"))
+                if 'notify_email' not in user_columns:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN notify_email BOOLEAN DEFAULT 0"))
+                if 'notify_slack' not in user_columns:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN notify_slack BOOLEAN DEFAULT 0"))
+
                 conn.commit()
         except Exception as exc:
-            print(f"Warning: unable to migrate incident schema automatically: {exc}")
+            print(f"Warning: unable to migrate schema automatically: {exc}")
 
         # Initialize default admin user
         from models import User
