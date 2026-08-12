@@ -85,3 +85,65 @@ class Playbook(db.Model):
             "enabled": self.enabled,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
+
+class Asset(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=True)
+    hostname = db.Column(db.String(100), nullable=True)
+    asset_type = db.Column(db.String(50), default='server')   # server, workstation, network, cloud
+    os = db.Column(db.String(100), nullable=True)
+    owner = db.Column(db.String(100), nullable=True)
+    criticality = db.Column(db.String(20), default='medium')   # low, medium, high, critical
+    status = db.Column(db.String(20), default='active')
+    last_seen = db.Column(db.DateTime, nullable=True)
+    open_ports = db.Column(db.Text, default='[]')
+    tags = db.Column(db.Text, default='[]')
+    notes = db.Column(db.Text, default='')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        import json
+        return {
+            "id": self.id, "name": self.name, "ip_address": self.ip_address,
+            "hostname": self.hostname, "asset_type": self.asset_type,
+            "os": self.os, "owner": self.owner, "criticality": self.criticality,
+            "status": self.status,
+            "last_seen": self.last_seen.isoformat() if self.last_seen else None,
+            "open_ports": json.loads(self.open_ports) if self.open_ports else [],
+            "tags": json.loads(self.tags) if self.tags else [],
+            "notes": self.notes,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class Case(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, default='')
+    severity = db.Column(db.String(20), default='Medium')
+    status = db.Column(db.String(30), default='open')  # open, investigating, escalated, resolved, closed
+    assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    incident_ids = db.Column(db.Text, default='[]')   # JSON list of related incident IDs
+    asset_ids = db.Column(db.Text, default='[]')      # JSON list of related asset IDs
+    timeline = db.Column(db.Text, default='[]')       # JSON list of timeline events
+    tags = db.Column(db.Text, default='[]')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    closed_at = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self):
+        import json
+        return {
+            "id": self.id, "title": self.title, "description": self.description,
+            "severity": self.severity, "status": self.status,
+            "assigned_to": self.assigned_to,
+            "incident_ids": json.loads(self.incident_ids) if self.incident_ids else [],
+            "asset_ids": json.loads(self.asset_ids) if self.asset_ids else [],
+            "timeline": json.loads(self.timeline) if self.timeline else [],
+            "tags": json.loads(self.tags) if self.tags else [],
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "closed_at": self.closed_at.isoformat() if self.closed_at else None,
+        }

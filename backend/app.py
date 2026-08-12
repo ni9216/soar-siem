@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import text
-from models import db, Incident, User, ThreatFeed
+from models import db, Incident, User, ThreatFeed, Playbook, Asset, Case
 from config import Config
 
 # =========================
@@ -175,6 +175,10 @@ from routes.threats import threats_bp
 from routes.soar import soar_bp
 from routes.playbooks import playbooks_bp
 from routes.twofa import twofa_bp
+from routes.assets import assets_bp
+from routes.cases import cases_bp
+from routes.reports import reports_bp
+from routes.intel import intel_bp
 
 
 # =========================
@@ -188,6 +192,10 @@ app.register_blueprint(threats_bp, url_prefix="/api")
 app.register_blueprint(soar_bp, url_prefix="/api")
 app.register_blueprint(playbooks_bp, url_prefix="/api")
 app.register_blueprint(twofa_bp, url_prefix="/api")
+app.register_blueprint(assets_bp, url_prefix="/api")
+app.register_blueprint(cases_bp, url_prefix="/api")
+app.register_blueprint(reports_bp, url_prefix="/api")
+app.register_blueprint(intel_bp, url_prefix="/api")
 
 
 # =========================

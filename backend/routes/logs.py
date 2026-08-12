@@ -61,6 +61,27 @@ def ingest_log():
     except Exception as e:
         return jsonify({"error": "Error processing log", "details": str(e)}), 500
 
+    # Run correlation engine — detect multi-step attack chains
+    attack_chains = []
+    try:
+        from services.correlation_engine import check_attack_chains
+        attack_chains = check_attack_chains(log)
+        if attack_chains:
+            severity = attack_chains[0]["severity"]  # escalate severity if chain detected
+            mitre_id = attack_chains[0].get("mitre", mitre_id)
+    except Exception as e:
+        print(f"Warning: Correlation engine failed: {e}")
+
+    # Check IPs in log against live threat feeds
+    ioc_hits = []
+    try:
+        from services.threat_feed_auto import scan_log_for_iocs
+        ioc_hits = scan_log_for_iocs(log)
+        if ioc_hits and severity == 'Low':
+            severity = 'High'   # escalate if known malicious IP
+    except Exception as e:
+        print(f"Warning: Threat feed scan failed: {e}")
+
     # Send to Kafka if enabled
     if KAFKA_ENABLED and kafka_producer:
         try:
@@ -68,9 +89,16 @@ def ingest_log():
         except Exception as e:
             print(f"Warning: Failed to send to Kafka: {e}")
 
+    # Build enriched title
+    title_parts = [f"LOG [{anomaly}]"]
+    if attack_chains:
+        title_parts.append(f"CHAIN: {attack_chains[0]['chain']}")
+    if ioc_hits:
+        title_parts.append(f"MALICIOUS IP: {ioc_hits[0]['indicator']}")
+
     try:
         incident = Incident(
-            title=f"LOG [{anomaly}]",
+            title=" | ".join(title_parts),
             severity=severity,
             details=log,
             time=datetime.now().strftime("%H:%M:%S"),
