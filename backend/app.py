@@ -97,12 +97,13 @@ app.config.from_object(Config)
 app.static_folder = 'static'
 
 # Restrict CORS to safe origins
-CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5000", "http://127.0.0.1:5173"])
+ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173').split(',')
+CORS(app, origins=ALLOWED_ORIGINS)
 
 db.init_app(app)
 
 # Restrict Socket.IO CORS
-socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://localhost:5000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5000", "http://127.0.0.1:5173"], async_mode="threading")
+socketio = SocketIO(app, cors_allowed_origins=ALLOWED_ORIGINS, async_mode="threading")
 
 jwt = JWTManager(app)
 
