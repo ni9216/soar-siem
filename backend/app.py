@@ -97,12 +97,12 @@ app.config.from_object(Config)
 app.static_folder = 'static'
 
 # Restrict CORS to safe origins
-CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"])
+CORS(app, origins=["http://localhost:3000", "http://localhost:5000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5000", "http://127.0.0.1:5173"])
 
 db.init_app(app)
 
 # Restrict Socket.IO CORS
-socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"], async_mode="threading")
+socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://localhost:5000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5000", "http://127.0.0.1:5173"], async_mode="threading")
 
 jwt = JWTManager(app)
 
@@ -305,7 +305,7 @@ if __name__ == "__main__":
         # Initialize default admin user
         from models import User
         admin_username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
-        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin')
+        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'password')
         existing_admin = User.query.filter_by(username=admin_username).first()
         if not existing_admin:
             admin = User(username=admin_username, role='admin')

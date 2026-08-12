@@ -6,7 +6,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "db.sqlite")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.getenv('SECRET_KEY', 'supersecretkey')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'supersecretkey-change-this-in-production-32chars')
     
     # Kafka settings
     KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
@@ -17,7 +17,7 @@ class Config:
     ELASTICSEARCH_PORT = int(os.getenv('ELASTICSEARCH_PORT', 9200))
     
     # JWT settings - ADD EXPIRATION
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-this-in-production-32ch')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)  # Token expires in 24 hours
     
     # Redis for Celery
