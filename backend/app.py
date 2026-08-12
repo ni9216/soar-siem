@@ -319,4 +319,6 @@ if __name__ == "__main__":
             db.session.commit()
             print("Default admin password updated to match environment settings.")
 
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('ENVIRONMENT', 'development') != 'production'
+    socketio.run(app, host="0.0.0.0", port=port, debug=debug)
