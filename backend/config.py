@@ -4,9 +4,16 @@ from datetime import timedelta
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "db.sqlite")
+    # Database — uses PostgreSQL in production, SQLite for local dev
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+        # Render provides postgres://, SQLAlchemy needs postgresql://
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or ('sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.getenv('SECRET_KEY', 'supersecretkey-change-this-in-production-32chars!@#')
+    SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
+
+    SECRET_KEY = os.getenv('SECRET_KEY', '_H0QUXmJGSxjQ658IxaVLKLaqf2XpTr--R2YzwcYgfc')
     
     # Kafka settings
     KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
@@ -17,7 +24,7 @@ class Config:
     ELASTICSEARCH_PORT = int(os.getenv('ELASTICSEARCH_PORT', 9200))
     
     # JWT settings - ADD EXPIRATION
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-this-in-production-32ch!')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'WvTjGx3yViS3mgauiWlYU6p7TZkxh9hX5t1aiD45260')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)  # Token expires in 24 hours
     
     # Redis for Celery

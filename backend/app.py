@@ -253,7 +253,7 @@ if __name__ == "__main__":
         # Initialize default admin user
         from models import User
         admin_username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
-        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'password')
+        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'Admin@Siem2024!')
         existing_admin = User.query.filter_by(username=admin_username).first()
         if not existing_admin:
             admin = User(username=admin_username, role='admin')

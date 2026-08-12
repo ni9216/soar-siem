@@ -78,6 +78,8 @@ services:
       - DEFAULT_ADMIN_USERNAME=${DEFAULT_ADMIN_USERNAME:-admin}
       - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-ChangeMe123!}
       - THREAT_INTELLIGENCE_API_KEY=${THREAT_INTELLIGENCE_API_KEY:-}
+      - DATABASE_URL=postgresql://soar_user:${POSTGRES_PASSWORD:-soar_pass}@postgres:5432/soar_siem
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       kafka:
         condition: service_started
@@ -85,6 +87,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      postgres:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - backend-db:/app
@@ -104,7 +108,35 @@ services:
           cpus: '0.5'
           memory: 256M
 
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: soar_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-soar_pass}
+      POSTGRES_DB: soar_siem
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soar_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+    profiles:
+      - production
+
 volumes:
   elasticsearch-data:
   redis-data:
   backend-db:
+  postgres-data:
