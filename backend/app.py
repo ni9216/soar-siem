@@ -85,7 +85,7 @@ try:
     import numpy as np
     from sklearn.ensemble import IsolationForest
     ML_ENABLED = True
-except:
+except ImportError:
     ML_ENABLED = False
 
 
@@ -214,59 +214,6 @@ def emit_event(incident):
         "severity": incident.severity,
         "title": incident.title
     })
-
-
-# =========================
-# AI SEVERITY ENGINE
-# =========================
-def severity_score(text):
-    text = text.lower()
-
-    rules = {
-        "ransomware": 5,
-        "malware": 4,
-        "exploit": 4,
-        "attack": 3,
-        "scan": 2,
-        "nmap": 3,
-        "failed": 2,
-        "error": 1,
-        "critical": 5,
-        "brute force": 4,
-        "unauthorized": 3,
-        "payload": 2
-    }
-
-    score = sum(text.count(k) * v for k, v in rules.items())
-
-    if score >= 10:
-        return "Critical"
-    elif score >= 6:
-        return "High"
-    elif score >= 3:
-        return "Medium"
-    return "Low"
-
-
-# =========================
-# ANOMALY DETECTION
-# =========================
-def anomaly_detect(text):
-    if not ML_ENABLED:
-        return "normal"
-
-    features = np.array([[
-        len(text),
-        text.lower().count("attack"),
-        text.lower().count("scan"),
-        text.lower().count("failed"),
-        text.lower().count("ransomware")
-    ]])
-
-    model = IsolationForest(contamination=0.2, random_state=42)
-    model.fit(features)
-
-    return "anomaly" if model.predict(features)[0] == -1 else "normal"
 
 
 # =========================
