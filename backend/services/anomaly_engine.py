@@ -3,7 +3,7 @@ import os
 import pickle
 from sklearn.ensemble import IsolationForest
 
-MODEL_PATH = 'anomaly_model.pkl'
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'anomaly_model.pkl')
 
 # Training data - normal log patterns
 NORMAL_LOGS = [
