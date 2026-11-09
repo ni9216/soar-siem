@@ -1,14 +1,7 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useEffectEvent, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
+
+const IncidentSummaryChart = lazy(() => import("./IncidentSummaryChart"));
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const COLORS = {
@@ -24,6 +17,7 @@ const tabs = [
   { id: "threats", label: "Threat Intelligence" },
   { id: "soar", label: "SOAR & Automation" },
   { id: "users", label: "User Management", adminOnly: true },
+  { id: "enterprise", label: "Security Operations", adminOnly: true },
   { id: "settings", label: "Settings" },
 ];
 
@@ -53,7 +47,6 @@ export default function Dashboard({ auth, onLogout }) {
   const [incidents, setIncidents] = useState([]);
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState({ Critical: 0, High: 0, Medium: 0, Low: 0 });
-  const [trends, setTrends] = useState([]);
   const [users, setUsers] = useState([]);
   const [threats, setThreats] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,10 +57,19 @@ export default function Dashboard({ auth, onLogout }) {
   const [tiQuery, setTiQuery] = useState("");
   const [tiResult, setTiResult] = useState(null);
   const [tiStatus, setTiStatus] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [socket, setSocket] = useState(null);  const [newUser, setNewUser] = useState({ username: "", password: "", role: "analyst" });
+  const socketRef = useRef(null);
+  const [newUser, setNewUser] = useState({ username: "", password: "", role: "analyst" });
   const [editingUser, setEditingUser] = useState(null);
-  const [userMessage, setUserMessage] = useState("");  const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
+  const [userMessage, setUserMessage] = useState("");
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [detectionRules, setDetectionRules] = useState([]);
+  const [executions, setExecutions] = useState([]);
+  const [mlEvaluation, setMlEvaluation] = useState(null);
+  const [operationsHealth, setOperationsHealth] = useState(null);
+  const [securityPolicy, setSecurityPolicy] = useState({ require_admin_mfa: false });
+  const [enterpriseMessage, setEnterpriseMessage] = useState("");
+  const [newRule, setNewRule] = useState({ name: "", pattern: "", severity: "Medium", mitre_attack_id: "" });
+  const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
   const isViewer = auth?.role === "viewer";
   const availableTabs = tabs.filter(tab => !tab.adminOnly || auth?.role === "admin");
 
@@ -104,13 +106,6 @@ export default function Dashboard({ auth, onLogout }) {
     setStats({ Critical: 0, High: 0, Medium: 0, Low: 0, ...data });
   };
 
-  const loadTrends = async () => {
-    const response = await fetchWithAuth("/api/trends");
-    if (!response) return;
-    const data = await response.json();
-    setTrends(data);
-  };
-
   const loadUsers = async () => {
     const response = await fetchWithAuth("/api/users");
     if (!response) return;
@@ -127,6 +122,109 @@ export default function Dashboard({ auth, onLogout }) {
     if (!response) return;
     const data = await response.json();
     setThreats(data);
+  };
+
+  const loadEnterprise = async () => {
+    const endpoints = ["/api/audit-logs?limit=20", "/api/rules", "/api/soar/executions", "/api/operations/health", "/api/security-policy", "/api/ml/evaluation"];
+    try {
+      const responses = await Promise.all(endpoints.map((endpoint) => fetchWithAuth(endpoint)));
+      if (responses.some((response) => !response || !response.ok)) {
+        setEnterpriseMessage("Unable to load one or more enterprise controls.");
+        return;
+      }
+      const [audit, rules, workflowExecutions, health, policy, evaluation] = await Promise.all(responses.map((response) => response.json()));
+      setAuditLogs(audit);
+      setDetectionRules(rules);
+      setExecutions(workflowExecutions);
+      setOperationsHealth(health);
+      setSecurityPolicy(policy);
+      setMlEvaluation(evaluation);
+      setEnterpriseMessage("");
+    } catch {
+      setEnterpriseMessage("Unable to connect to enterprise controls.");
+    }
+  };
+
+  const saveSecurityPolicy = async (requireAdminMfa) => {
+    const response = await fetchWithAuth("/api/security-policy", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ require_admin_mfa: requireAdminMfa }),
+    });
+    if (!response) return;
+    if (response.ok) {
+      setSecurityPolicy({ require_admin_mfa: requireAdminMfa });
+      setEnterpriseMessage("Security policy updated.");
+    } else {
+      setEnterpriseMessage("Unable to update security policy.");
+    }
+  };
+
+  const createDetectionRule = async () => {
+    const response = await fetchWithAuth("/api/rules", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newRule),
+    });
+    if (!response) return;
+    const data = await response.json();
+    if (response.ok) {
+      setDetectionRules((current) => [...current, data].sort((left, right) => left.name.localeCompare(right.name)));
+      setNewRule({ name: "", pattern: "", severity: "Medium", mitre_attack_id: "" });
+      setEnterpriseMessage("Detection rule created.");
+    } else {
+      setEnterpriseMessage(data.error || "Unable to create detection rule.");
+    }
+  };
+
+  const deleteDetectionRule = async (ruleId) => {
+    const response = await fetchWithAuth(`/api/rules/${ruleId}`, { method: "DELETE" });
+    if (!response) return;
+    if (response.ok) {
+      setDetectionRules((current) => current.filter((rule) => rule.id !== ruleId));
+      setEnterpriseMessage("Detection rule deleted.");
+    }
+  };
+
+  const approveExecution = async (executionId) => {
+    const response = await fetchWithAuth(`/api/soar/executions/${executionId}/approve`, { method: "POST" });
+    if (!response) return;
+    if (response.ok) {
+      const data = await response.json();
+      await Promise.all([loadEnterprise(), loadIncidents()]);
+      setEnterpriseMessage(
+        data.status === "failed"
+          ? data.result?.error || "The approved execution failed."
+          : "SOAR execution approved."
+      );
+    } else {
+      const data = await response.json();
+      setEnterpriseMessage(data.error || "Unable to approve SOAR execution.");
+    }
+  };
+
+  const rejectExecution = async (executionId) => {
+    const response = await fetchWithAuth(`/api/soar/executions/${executionId}/reject`, { method: "POST" });
+    if (!response) return;
+    const data = await response.json();
+    if (response.ok) {
+      await loadEnterprise();
+      setEnterpriseMessage("SOAR execution rejected; no actions were performed.");
+    } else {
+      setEnterpriseMessage(data.error || "Unable to reject SOAR execution.");
+    }
+  };
+
+  const rollbackExecution = async (executionId) => {
+    const response = await fetchWithAuth(`/api/soar/executions/${executionId}/rollback`, { method: "POST" });
+    if (!response) return;
+    const data = await response.json();
+    if (response.ok) {
+      await Promise.all([loadEnterprise(), loadIncidents()]);
+      setEnterpriseMessage(data.result?.rollback?.message || "Rollback recorded.");
+    } else {
+      setEnterpriseMessage(data.error || "Unable to record rollback.");
+    }
   };
 
   const lookupAbuseIPDB = async () => {
@@ -212,12 +310,12 @@ export default function Dashboard({ auth, onLogout }) {
 
       const data = await response.json();
       setScanMessage(data.message || "Scan started successfully.");
-    } catch (error) {
+    } catch {
       setScanMessage("Failed to launch scan. Check backend connectivity.");
     }
   };
 
-  const triggerPlaybook = async (playbook) => {
+  const triggerPlaybook = async (playbook, dryRun = false) => {
     if (!incidents.length) {
       setWorkflowNote("No incident available to run the playbook.");
       return;
@@ -229,7 +327,7 @@ export default function Dashboard({ auth, onLogout }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ incident_id: incidentId, playbook }),
+      body: JSON.stringify({ incident_id: incidentId, playbook, dry_run: dryRun }),
     });
 
     if (!response) return;
@@ -245,8 +343,8 @@ export default function Dashboard({ auth, onLogout }) {
     }
   };
 
-  const launchWorkflow = (workflow) => {
-    triggerPlaybook(workflow);
+  const launchWorkflow = (workflow, dryRun = false) => {
+    triggerPlaybook(workflow, dryRun);
   };
 
   const createUser = async () => {
@@ -256,7 +354,7 @@ export default function Dashboard({ auth, onLogout }) {
     }
 
     try {
-      const response = await fetchWithAuth("/api/users", {
+      const response = await fetchWithAuth("/api/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -274,7 +372,7 @@ export default function Dashboard({ auth, onLogout }) {
         const data = await response.json();
         setUserMessage(data.error || "Failed to create user.");
       }
-    } catch (error) {
+    } catch {
       setUserMessage("Failed to create user.");
     }
   };
@@ -299,7 +397,7 @@ export default function Dashboard({ auth, onLogout }) {
         const data = await response.json();
         setUserMessage(data.error || "Failed to update user.");
       }
-    } catch (error) {
+    } catch {
       setUserMessage("Failed to update user.");
     }
   };
@@ -321,7 +419,7 @@ export default function Dashboard({ auth, onLogout }) {
         const data = await response.json();
         setUserMessage(data.error || "Failed to delete user.");
       }
-    } catch (error) {
+    } catch {
       setUserMessage("Failed to delete user.");
     }
   };
@@ -331,25 +429,25 @@ export default function Dashboard({ auth, onLogout }) {
   const totalLogs = logs.length;
   const totalUsers = users.length;
 
-  useEffect(() => {
-    if (!auth?.token) {
-      onLogout();
-      return;
-    }
+  const refreshDashboard = useEffectEvent(() => {
+    void loadIncidents();
+    void loadStats();
+    void loadUsers();
+    void loadThreats();
+  });
 
-    loadIncidents();
-    loadStats();
-    loadTrends();
-    loadUsers();
-    loadThreats();
+  useEffect(() => {
+    if (!auth?.token) return undefined;
+
+    const timeoutId = window.setTimeout(refreshDashboard, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [auth.token]);
 
   useEffect(() => {
     if (!auth?.token) return;
-    if (socket) return;
+    if (socketRef.current) return;
 
     const connection = io(API, {
-      transports: ["websocket"],
       auth: { token: auth.token },
     });
 
@@ -369,11 +467,13 @@ export default function Dashboard({ auth, onLogout }) {
       setIncidents((current) => current.map((inc) => (inc.id === incident.id ? incident : inc)));
     });
 
-    setSocket(connection);
+    socketRef.current = connection;
 
     return () => {
       connection.disconnect();
-      setSocket(null);
+      if (socketRef.current === connection) {
+        socketRef.current = null;
+      }
     };
   }, [auth.token]);
 
@@ -439,26 +539,14 @@ export default function Dashboard({ auth, onLogout }) {
             👁️ Viewer Mode: Read-only monitoring access to security operations data.
           </div>
         )}
-
-        {authError && (
-          <div
-            style={{
-              marginBottom: 20,
-              padding: 16,
-              background: "#7f1d1d",
-              color: "#fee2e2",
-              borderRadius: 16,
-            }}
-          >
-            {authError}
-          </div>
-        )}
-
         <nav style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 28 }}>
           {availableTabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (tab.id === "enterprise") loadEnterprise();
+              }}
               style={{
                 padding: "12px 18px",
                 borderRadius: 999,
@@ -492,15 +580,9 @@ export default function Dashboard({ auth, onLogout }) {
                 </div>
 
                 <div style={{ width: "100%", height: 220, marginBottom: 18 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={["Critical", "High", "Medium", "Low"].map((name) => ({ name, count: stats[name] || 0 }))}>
-                      <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                      <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} />
-                      <YAxis tick={{ fill: '#94a3b8' }} />
-                      <Tooltip cursor={{ fill: '#0f172a' }} />
-                      <Bar dataKey="count" fill={isViewer ? "#3b82f6" : "#22c55e"} radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <Suspense fallback={<div style={{ color: "#94a3b8", padding: 16 }}>Loading chart...</div>}>
+                    <IncidentSummaryChart stats={stats} color={isViewer ? "#3b82f6" : "#22c55e"} />
+                  </Suspense>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16, marginTop: 14 }}>
@@ -594,6 +676,10 @@ export default function Dashboard({ auth, onLogout }) {
                         <div style={{ color: "#94a3b8", fontSize: 13 }}><strong>Status:</strong> {incident.status || "open"}</div>
                         <div style={{ color: "#94a3b8", fontSize: 13 }}><strong>Assigned:</strong> {assignedLabel}</div>
                       </div>
+                      <div style={{ color: incident.sla_breached ? "#f87171" : "#94a3b8", fontSize: 13, marginTop: 8 }}>
+                        <strong>SLA:</strong> {incident.sla_due_at ? `Due ${new Date(incident.sla_due_at).toLocaleString()}` : "No SLA target"}
+                        {incident.sla_breached ? " · Overdue" : ""}
+                      </div>
 
                       {canManageIncidents && (
                         <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
@@ -604,7 +690,10 @@ export default function Dashboard({ auth, onLogout }) {
                               style={{ flex: 1, padding: 12, borderRadius: 12, border: "1px solid #334155", background: "#020617", color: "#e2e8f0" }}
                             >
                               <option value="open">Open</option>
+                              <option value="triage">Triage</option>
                               <option value="investigating">Investigating</option>
+                              <option value="escalated">Escalated</option>
+                              <option value="contained">Contained</option>
                               <option value="resolved">Resolved</option>
                               <option value="closed">Closed</option>
                             </select>
@@ -614,7 +703,7 @@ export default function Dashboard({ auth, onLogout }) {
                               style={{ flex: 1, padding: 12, borderRadius: 12, border: "1px solid #334155", background: "#020617", color: "#e2e8f0" }}
                             >
                               <option value="">Unassigned</option>
-                              {users.map((user) => (
+                              {users.filter((user) => ["admin", "analyst"].includes(user.role)).map((user) => (
                                 <option key={user.id} value={user.id}>{user.username} ({user.role})</option>
                               ))}
                             </select>
@@ -636,6 +725,21 @@ export default function Dashboard({ auth, onLogout }) {
                             </button>
                           </div>
                         </div>
+                      )}
+                      {incident.timeline?.length > 0 && (
+                        <details style={{ marginTop: 14, color: "#94a3b8", fontSize: 13 }}>
+                          <summary style={{ cursor: "pointer" }}>Activity history ({incident.timeline.length})</summary>
+                          <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                            {[...incident.timeline].reverse().slice(0, 8).map((entry, index) => (
+                              <div key={`${entry.at}-${index}`} style={{ borderLeft: "2px solid #334155", paddingLeft: 10 }}>
+                                <strong>{entry.action.replace(/_/g, " ")}</strong>
+                                <div>{entry.actor} · {new Date(entry.at).toLocaleString()}</div>
+                                {entry.action === "assigned" && <div>From {entry.details.from || "unassigned"} to {entry.details.to || "unassigned"}</div>}
+                                {entry.action === "status_changed" && <div>{entry.details.from} → {entry.details.to}</div>}
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                       )}
                     </div>
                   );
@@ -841,21 +945,29 @@ export default function Dashboard({ auth, onLogout }) {
                 <div key={workflow.title} style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
                   <div style={{ color: "#94a3b8", marginBottom: 10 }}>{workflow.title}</div>
                   <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>{workflow.description}</div>
-                  <button
-                    onClick={() => launchWorkflow(workflow.action)}
-                    disabled={isViewer}
-                    style={{
-                      marginTop: 12,
-                      padding: "12px 16px",
-                      borderRadius: 14,
-                      border: "none",
-                      background: isViewer ? "#334155" : workflow.color,
-                      color: "#020617",
-                      cursor: isViewer ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    Run {workflow.title}
-                  </button>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+                    <button
+                      onClick={() => launchWorkflow(workflow.action, true)}
+                      disabled={isViewer}
+                      style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid #334155", background: "#111827", color: "#e2e8f0", cursor: isViewer ? "not-allowed" : "pointer" }}
+                    >
+                      Dry run
+                    </button>
+                    <button
+                      onClick={() => launchWorkflow(workflow.action)}
+                      disabled={isViewer}
+                      style={{
+                        padding: "12px 16px",
+                        borderRadius: 14,
+                        border: "none",
+                        background: isViewer ? "#334155" : workflow.color,
+                        color: "#020617",
+                        cursor: isViewer ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      Request approval
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1096,6 +1208,102 @@ export default function Dashboard({ auth, onLogout }) {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "enterprise" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ color: "#94a3b8", fontSize: 14 }}>Enterprise controls</div>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>Security operations</div>
+              </div>
+              <button onClick={loadEnterprise} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #334155", background: "#111827", color: "#e2e8f0", cursor: "pointer" }}>Refresh</button>
+            </div>
+
+            {enterpriseMessage && <div style={{ padding: 14, background: "#111827", border: "1px solid #334155", color: "#cbd5e1", borderRadius: 8 }}>{enterpriseMessage}</div>}
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Platform health</div>
+                <div style={{ marginTop: 10, fontSize: 18, fontWeight: 700, color: operationsHealth?.status === "healthy" ? "#22c55e" : "#f59e0b" }}>{operationsHealth?.status || "Not loaded"}</div>
+                <div style={{ marginTop: 12, color: "#94a3b8", fontSize: 13 }}>Database: {operationsHealth?.database || "n/a"}</div>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Incidents: {operationsHealth?.incidents ?? "n/a"} · Cases: {operationsHealth?.cases ?? "n/a"}</div>
+              </div>
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Administrator MFA</div>
+                <div style={{ margin: "10px 0", color: "#e2e8f0" }}>{securityPolicy.require_admin_mfa ? "Required for administrators" : "Optional for administrators"}</div>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, color: "#cbd5e1", fontSize: 14 }}>
+                  <input type="checkbox" checked={securityPolicy.require_admin_mfa} onChange={(event) => saveSecurityPolicy(event.target.checked)} />
+                  Require MFA for administrators
+                </label>
+              </div>
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>SOAR approvals</div>
+                <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700 }}>{executions.filter((execution) => execution.status === "pending_approval").length}</div>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Executions awaiting an administrator</div>
+              </div>
+            </div>
+
+            <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+              <div style={{ fontWeight: 700 }}>Anomaly model benchmark</div>
+              <div style={{ color: "#fbbf24", fontSize: 13, marginTop: 6 }}>
+                Synthetic labeled examples only; these results are not production accuracy estimates.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 14 }}>
+                {Object.entries(mlEvaluation?.models || {}).map(([name, metrics]) => (
+                  <div key={name} style={{ background: "#020617", borderRadius: 6, padding: 12 }}>
+                    <strong>{name}</strong>
+                    <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 6 }}>
+                      Accuracy {Math.round(metrics.accuracy * 100)}% · Precision {Math.round(metrics.precision * 100)}% · Recall {Math.round(metrics.recall * 100)}% · F1 {Math.round(metrics.f1 * 100)}%
+                    </div>
+                    <div style={{ color: "#64748b", fontSize: 12 }}>{metrics.training_samples} train · {metrics.evaluation_samples} evaluation</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18 }}>
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ fontWeight: 700, marginBottom: 16 }}>Detection rules</div>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <input value={newRule.name} onChange={(event) => setNewRule({ ...newRule, name: event.target.value })} placeholder="Rule name" style={{ padding: 10, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  <input value={newRule.pattern} onChange={(event) => setNewRule({ ...newRule, pattern: event.target.value })} placeholder="Match pattern" style={{ padding: 10, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <select value={newRule.severity} onChange={(event) => setNewRule({ ...newRule, severity: event.target.value })} style={{ padding: 10, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }}><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select>
+                    <input value={newRule.mitre_attack_id} onChange={(event) => setNewRule({ ...newRule, mitre_attack_id: event.target.value })} placeholder="MITRE ID" style={{ padding: 10, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  </div>
+                  <button onClick={createDetectionRule} style={{ padding: 10, background: "#22c55e", color: "#020617", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>Create rule</button>
+                </div>
+                <div style={{ display: "grid", gap: 8, marginTop: 18, maxHeight: 240, overflowY: "auto" }}>
+                  {detectionRules.map((rule) => <div key={rule.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: 10, background: "#020617", borderRadius: 6 }}><div><strong>{rule.name}</strong><div style={{ color: "#94a3b8", fontSize: 12 }}>{rule.severity} · {rule.mitre_attack_id || "Unmapped"}</div></div><button onClick={() => deleteDetectionRule(rule.id)} style={{ border: "none", background: "transparent", color: "#f87171", cursor: "pointer" }}>Delete</button></div>)}
+                </div>
+              </div>
+
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ fontWeight: 700, marginBottom: 16 }}>Approvals and audit trail</div>
+                <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
+                  {executions.filter((execution) => execution.status === "pending_approval").map((execution) => <div key={execution.id} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", gap: 10, padding: 10, background: "#020617", borderRadius: 6 }}><div><strong>{execution.playbook}</strong><div style={{ color: "#94a3b8", fontSize: 12 }}>Incident #{execution.incident_id} · {execution.initiated_by}</div><div style={{ color: "#94a3b8", fontSize: 12 }}>Actions: {(execution.actions || []).join(", ")}</div></div><button onClick={() => approveExecution(execution.id)} style={{ border: "none", background: "#22c55e", color: "#020617", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}>Approve</button><button onClick={() => rejectExecution(execution.id)} style={{ border: "1px solid #7f1d1d", background: "#450a0a", color: "#fecaca", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}>Reject</button></div>)}
+                  {!executions.some((execution) => execution.status === "pending_approval") && <div style={{ color: "#94a3b8", fontSize: 13 }}>No approvals are pending.</div>}
+                </div>
+                <div style={{ display: "grid", gap: 8, maxHeight: 200, overflowY: "auto", marginBottom: 18 }}>
+                  {executions.filter((execution) => ["completed", "rollback_required", "rejected", "dry_run"].includes(execution.status)).slice(0, 10).map((execution) => (
+                    <div key={execution.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: 10, background: "#020617", borderRadius: 6 }}>
+                      <div>
+                        <strong>{execution.playbook}</strong>
+                        <div style={{ color: "#94a3b8", fontSize: 12 }}>Incident #{execution.incident_id} · {execution.status.replace(/_/g, " ")}</div>
+                      </div>
+                      {execution.status === "completed" && (
+                        <button onClick={() => rollbackExecution(execution.id)} style={{ border: "1px solid #f59e0b", background: "#451a03", color: "#fde68a", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}>Record rollback</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gap: 8, maxHeight: 240, overflowY: "auto" }}>
+                  {auditLogs.map((entry) => <div key={entry.id} style={{ padding: 10, background: "#020617", borderRadius: 6 }}><strong style={{ fontSize: 13 }}>{entry.action}</strong><div style={{ color: "#94a3b8", fontSize: 12 }}>{entry.actor} · {entry.resource} · {new Date(entry.created_at).toLocaleString()}</div></div>)}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

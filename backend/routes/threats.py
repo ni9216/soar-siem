@@ -62,7 +62,7 @@ def lookup_abuseipdb():
             "raw_data": data,
         })
     except requests.RequestException as exc:
+        print(f"AbuseIPDB query error: {exc}")  # Log for debugging
         return jsonify({
-            "error": "Failed to query AbuseIPDB.",
-            "details": str(exc)
+            "error": "Failed to query threat intelligence service."
         }), 502

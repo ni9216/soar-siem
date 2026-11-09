@@ -3,7 +3,7 @@ Extended ML Models
 ------------------
 - Network anomaly detection (port scans, connection spikes)
 - User behavior analysis (login patterns, access anomalies)
-- Combined scoring for better accuracy
+- Combined anomaly scoring
 """
 
 import os
@@ -13,6 +13,7 @@ import re
 from sklearn.ensemble import IsolationForest
 
 MODELS_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_VERSION = 'v2'
 
 _models = {}
 
@@ -72,7 +73,7 @@ def _user_behavior_features(text: str) -> list:
 # ── Model loading ─────────────────────────────────────────
 
 def _load_or_train(name: str, feature_fn, normal_logs: list) -> IsolationForest:
-    path = os.path.join(MODELS_DIR, '..', f'{name}_model.pkl')
+    path = os.path.join(MODELS_DIR, '..', f'{name}_model_{MODEL_VERSION}.pkl')
     if os.path.exists(path):
         with open(path, 'rb') as f:
             return pickle.load(f)
@@ -86,38 +87,39 @@ def _load_or_train(name: str, feature_fn, normal_logs: list) -> IsolationForest:
 
 
 _NORMAL_LOGS = [
-    "User login successful from 192.168.1.1",
-    "Database connection established on port 5432",
-    "File uploaded successfully",
-    "Service started on port 8080",
-    "Scheduled task executed",
-    "Health check passed",
-    "Certificate renewed",
-    "User session expired",
-    "Cache cleared",
-    "Report generated",
+    f"{service} {event} successfully for {environment}"
+    for service in ('web service', 'database', 'scheduler', 'reporting', 'identity service')
+    for event in ('health check', 'routine task', 'connection', 'configuration refresh')
+    for environment in ('production', 'staging', 'internal')
 ]
 
 _NORMAL_NETWORK = [
-    "Connection on port 80 from 10.0.0.1",
-    "HTTPS traffic on port 443",
-    "DNS query resolved successfully",
-    "Firewall allowed outbound port 443",
-    "Load balancer connection port 8080",
-    "Database port 5432 connection established",
-    "Packet received from 192.168.1.100",
-    "Connection closed gracefully",
+    f"{protocol} connection {state} on port {port} from {subnet}.{host}"
+    for protocol, state, port, subnet in (
+        ('HTTPS', 'established', 443, '10.0.0'),
+        ('DNS', 'resolved', 53, '10.0.1'),
+        ('HTTP', 'closed gracefully', 80, '192.168.1'),
+        ('database', 'established', 5432, '10.0.2'),
+        ('SSH', 'allowed', 22, '192.168.2'),
+        ('application', 'established', 8080, '10.0.3'),
+        ('TLS', 'renewed', 443, '192.168.3'),
+        ('firewall', 'allowed', 8443, '10.0.4'),
+    )
+    for host in range(1, 5)
 ]
 
 _NORMAL_USER = [
-    "User admin login successful",
-    "User logout from dashboard",
-    "Password changed successfully",
-    "Access granted to /api/incidents",
-    "User session started",
-    "Profile updated successfully",
-    "User permissions verified",
-    "Auth token refreshed",
+    f"{action} by {user} {outcome} from {device}"
+    for action, outcome in (
+        ('login', 'successful'),
+        ('logout', 'completed'),
+        ('password change', 'successful'),
+        ('access', 'granted'),
+        ('session refresh', 'successful'),
+        ('permission check', 'verified'),
+    )
+    for user in ('analyst', 'admin', 'operator', 'engineer')
+    for device in ('managed workstation', 'corporate laptop', 'company desktop')
 ]
 
 
@@ -136,32 +138,23 @@ def _get_model(name):
 
 def detect_anomaly(text: str) -> str:
     """General log anomaly detection."""
-    try:
-        model = _get_model('log')
-        features = np.array([_log_features(text)])
-        return 'anomaly' if model.predict(features)[0] == -1 else 'normal'
-    except Exception:
-        return 'normal'
+    model = _get_model('log')
+    features = np.array([_log_features(text)])
+    return 'anomaly' if model.predict(features)[0] == -1 else 'normal'
 
 
 def detect_network_anomaly(text: str) -> str:
     """Network-specific anomaly detection."""
-    try:
-        model = _get_model('network')
-        features = np.array([_network_features(text)])
-        return 'anomaly' if model.predict(features)[0] == -1 else 'normal'
-    except Exception:
-        return 'normal'
+    model = _get_model('network')
+    features = np.array([_network_features(text)])
+    return 'anomaly' if model.predict(features)[0] == -1 else 'normal'
 
 
 def detect_user_anomaly(text: str) -> str:
     """User behavior anomaly detection."""
-    try:
-        model = _get_model('user')
-        features = np.array([_user_behavior_features(text)])
-        return 'anomaly' if model.predict(features)[0] == -1 else 'normal'
-    except Exception:
-        return 'normal'
+    model = _get_model('user')
+    features = np.array([_user_behavior_features(text)])
+    return 'anomaly' if model.predict(features)[0] == -1 else 'normal'
 
 
 def full_analysis(text: str) -> dict:
@@ -185,6 +178,6 @@ def retrain_all():
     """Delete all saved models to force retraining on next call."""
     _models.clear()
     for name in ['anomaly', 'network', 'user_behavior']:
-        path = os.path.join(MODELS_DIR, '..', f'{name}_model.pkl')
+        path = os.path.join(MODELS_DIR, '..', f'{name}_model_{MODEL_VERSION}.pkl')
         if os.path.exists(path):
             os.remove(path)

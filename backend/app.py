@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import text
 from models import db, Incident, User, ThreatFeed, Playbook, Asset, Case
+from routes.enterprise import enterprise_bp
+from routes.ingestion import ingestion_bp
 from config import Config
 
 # =========================
@@ -196,6 +198,8 @@ app.register_blueprint(assets_bp, url_prefix="/api")
 app.register_blueprint(cases_bp, url_prefix="/api")
 app.register_blueprint(reports_bp, url_prefix="/api")
 app.register_blueprint(intel_bp, url_prefix="/api")
+app.register_blueprint(enterprise_bp, url_prefix="/api")
+app.register_blueprint(ingestion_bp, url_prefix="/api")
 
 
 # =========================
@@ -246,31 +250,79 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-        # Fix outdated incident table schema if the database was created with an older model.
+        # Fix outdated schema if the database was created with an older model.
         try:
-            with db.engine.connect() as conn:
-                result = conn.execute(text("PRAGMA table_info(incident)"))
-                columns = [row[1] for row in result.fetchall()]
-                if 'status' not in columns:
-                    conn.execute(text("ALTER TABLE incident ADD COLUMN status VARCHAR(50) DEFAULT 'open'"))
-                if 'assigned_to' not in columns:
-                    conn.execute(text("ALTER TABLE incident ADD COLUMN assigned_to INTEGER"))
-                if 'notes' not in columns:
-                    conn.execute(text("ALTER TABLE incident ADD COLUMN notes TEXT DEFAULT ''"))
+            from sqlalchemy.engine.url import make_url
+            db_url = make_url(app.config['SQLALCHEMY_DATABASE_URI'])
+            db_dialect = db_url.drivername.split('+')[0]
 
-                # Migrate user table for new features (2FA, notifications)
-                result = conn.execute(text("PRAGMA table_info(user)"))
-                user_columns = [row[1] for row in result.fetchall()]
-                if 'totp_secret' not in user_columns:
-                    conn.execute(text("ALTER TABLE user ADD COLUMN totp_secret VARCHAR(32)"))
-                if 'totp_enabled' not in user_columns:
-                    conn.execute(text("ALTER TABLE user ADD COLUMN totp_enabled BOOLEAN DEFAULT 0"))
-                if 'email' not in user_columns:
-                    conn.execute(text("ALTER TABLE user ADD COLUMN email VARCHAR(120)"))
-                if 'notify_email' not in user_columns:
-                    conn.execute(text("ALTER TABLE user ADD COLUMN notify_email BOOLEAN DEFAULT 0"))
-                if 'notify_slack' not in user_columns:
-                    conn.execute(text("ALTER TABLE user ADD COLUMN notify_slack BOOLEAN DEFAULT 0"))
+            with db.engine.connect() as conn:
+                # SQLite uses PRAGMA, PostgreSQL uses information_schema
+                if db_dialect == 'sqlite':
+                    result = conn.execute(text("PRAGMA table_info(incident)"))
+                    columns = [row[1] for row in result.fetchall()]
+                    if 'status' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN status VARCHAR(50) DEFAULT 'open'"))
+                    if 'assigned_to' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN assigned_to INTEGER"))
+                    if 'alert_group_id' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN alert_group_id INTEGER"))
+                    if 'notes' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN notes TEXT DEFAULT ''"))
+                    if 'sla_due_at' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN sla_due_at DATETIME"))
+                    if 'closed_at' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN closed_at DATETIME"))
+                    if 'timeline' not in columns:
+                        conn.execute(text("ALTER TABLE incident ADD COLUMN timeline TEXT DEFAULT '[]'"))
+
+                    result = conn.execute(text("PRAGMA table_info(playbook_execution)"))
+                    execution_columns = [row[1] for row in result.fetchall()]
+                    if 'approved_by' not in execution_columns:
+                        conn.execute(text("ALTER TABLE playbook_execution ADD COLUMN approved_by VARCHAR(80)"))
+
+                    result = conn.execute(text("PRAGMA table_info(user)"))
+                    user_columns = [row[1] for row in result.fetchall()]
+                    if 'totp_secret' not in user_columns:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN totp_secret VARCHAR(32)"))
+                    if 'totp_enabled' not in user_columns:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN totp_enabled BOOLEAN DEFAULT 0"))
+                    if 'email' not in user_columns:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN email VARCHAR(120)"))
+                    if 'notify_email' not in user_columns:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN notify_email BOOLEAN DEFAULT 0"))
+                    if 'notify_slack' not in user_columns:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN notify_slack BOOLEAN DEFAULT 0"))
+                else:
+                    # PostgreSQL migrations - use try/except for each column as it may already exist
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'open'"))
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS assigned_to INTEGER"))
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS alert_group_id INTEGER"))
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT ''"))
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS sla_due_at TIMESTAMP"))
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS closed_at TIMESTAMP"))
+                    conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS timeline TEXT DEFAULT '[]'"))
+                    conn.execute(text("ALTER TABLE playbook_execution ADD COLUMN IF NOT EXISTS approved_by VARCHAR(80)"))
+                    try:
+                        conn.execute(text("ALTER TABLE \"user\" ADD COLUMN totp_secret VARCHAR(32)"))
+                    except:
+                        pass
+                    try:
+                        conn.execute(text("ALTER TABLE \"user\" ADD COLUMN totp_enabled BOOLEAN DEFAULT false"))
+                    except:
+                        pass
+                    try:
+                        conn.execute(text("ALTER TABLE \"user\" ADD COLUMN email VARCHAR(120)"))
+                    except:
+                        pass
+                    try:
+                        conn.execute(text("ALTER TABLE \"user\" ADD COLUMN notify_email BOOLEAN DEFAULT false"))
+                    except:
+                        pass
+                    try:
+                        conn.execute(text("ALTER TABLE \"user\" ADD COLUMN notify_slack BOOLEAN DEFAULT false"))
+                    except:
+                        pass
 
                 conn.commit()
         except Exception as exc:
@@ -279,18 +331,16 @@ if __name__ == "__main__":
         # Initialize default admin user
         from models import User
         admin_username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
-        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'Admin@Siem2024!')
+        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD')
         existing_admin = User.query.filter_by(username=admin_username).first()
-        if not existing_admin:
+        if not existing_admin and admin_password:
             admin = User(username=admin_username, role='admin')
             admin.set_password(admin_password)
             db.session.add(admin)
             db.session.commit()
-            print("Default admin user created.")
-        elif not existing_admin.check_password(admin_password):
-            existing_admin.set_password(admin_password)
-            db.session.commit()
-            print("Default admin password updated to match environment settings.")
+            print("Default admin user created. Change password immediately after first login.")
+        elif not existing_admin:
+            print("WARNING: DEFAULT_ADMIN_PASSWORD not set. Admin user not created automatically.")
 
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('ENVIRONMENT', 'development') != 'production'

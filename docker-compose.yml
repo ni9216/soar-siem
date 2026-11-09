@@ -73,13 +73,14 @@ services:
       - ELASTICSEARCH_HOST=elasticsearch
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-supersecretkey}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set}
       - DEFAULT_ADMIN_USERNAME=${DEFAULT_ADMIN_USERNAME:-admin}
-      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-ChangeMe123!}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:?DEFAULT_ADMIN_PASSWORD must be set}
       - THREAT_INTELLIGENCE_API_KEY=${THREAT_INTELLIGENCE_API_KEY:-}
-      - DATABASE_URL=postgresql://soar_user:${POSTGRES_PASSWORD:-soar_pass}@postgres:5432/soar_siem
+      - DATABASE_URL=postgresql://soar_user:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/soar_siem
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      - INGESTION_SYNC_PROCESSING=false
     depends_on:
       kafka:
         condition: service_started
@@ -89,9 +90,6 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - backend-db:/app
     command: python3 app.py
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
@@ -108,11 +106,28 @@ services:
           cpus: '0.5'
           memory: 256M
 
+  ingestion-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A services.ingestion.celery worker --loglevel=INFO
+    environment:
+      - DATABASE_URL=postgresql://soar_user:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/soar_siem
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   postgres:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: soar_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-soar_pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: soar_siem
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -122,21 +137,30 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend:
+    build:
+      context: ./frontend/soc-dashboard-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certs:/etc/nginx/certs:ro
     depends_on:
       - backend
+      - frontend
     profiles:
       - production
 
 volumes:
   elasticsearch-data:
   redis-data:
-  backend-db:
   postgres-data:

@@ -13,20 +13,26 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
 
-    SECRET_KEY = os.getenv('SECRET_KEY', '_H0QUXmJGSxjQ658IxaVLKLaqf2XpTr--R2YzwcYgfc')
-    
+    ENVIRONMENT = os.getenv('ENVIRONMENT', 'development').lower()
+
+    SECRET_KEY = os.getenv('SECRET_KEY') or ('dev-secret-key-change-me' if ENVIRONMENT != 'production' else None)
+    if not SECRET_KEY:
+        raise ValueError('SECRET_KEY environment variable is required in production')
+
     # Kafka settings
     KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
     KAFKA_TOPIC_LOGS = 'soc-logs'
-    
+
     # Elasticsearch settings
     ELASTICSEARCH_HOST = os.getenv('ELASTICSEARCH_HOST', 'localhost')
     ELASTICSEARCH_PORT = int(os.getenv('ELASTICSEARCH_PORT', 9200))
-    
+
     # JWT settings - ADD EXPIRATION
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'WvTjGx3yViS3mgauiWlYU6p7TZkxh9hX5t1aiD45260')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY') or ('dev-jwt-secret-key-change-me' if ENVIRONMENT != 'production' else None)
+    if not JWT_SECRET_KEY:
+        raise ValueError('JWT_SECRET_KEY environment variable is required in production')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)  # Token expires in 24 hours
-    
+
     # Redis for Celery
     CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
     CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')

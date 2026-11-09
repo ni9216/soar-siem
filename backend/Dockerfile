@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Install system dependencies for python-nmap
 RUN apt-get update && apt-get install -y \
+    curl \
     nmap \
     && rm -rf /var/lib/apt/lists/*
 

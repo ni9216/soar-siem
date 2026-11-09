@@ -1,9 +1,10 @@
 import json
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from models import db, Playbook, Incident
-from routes.auth import role_required, get_current_user
-from services.notifications import notify_all
+from routes.auth import role_required
+from services.playbook_safety import create_approved_execution, validate_actions
+from services.audit import record_audit
 
 playbooks_bp = Blueprint('playbooks', __name__)
 
@@ -44,25 +45,17 @@ def seed_default_playbooks():
 
 
 def run_playbook_for_incident(incident: Incident):
-    """Find and execute matching enabled playbooks for an incident."""
+    """Queue matching playbooks for administrator approval without running actions."""
     playbooks = Playbook.query.filter(
         Playbook.enabled == True,
         Playbook.trigger_severity.in_([incident.severity, 'Any'])
     ).all()
 
     for pb in playbooks:
-        actions = json.loads(pb.actions) if pb.actions else []
-        subject = f"[{incident.severity}] {incident.title}"
-        message = (
-            f"Incident #{incident.id}\n"
-            f"Severity : {incident.severity}\n"
-            f"MITRE    : {incident.mitre_attack_id}\n"
-            f"Details  : {incident.details}\n"
-            f"Playbook : {pb.name}"
-        )
-
-        if 'notify_slack' in actions or 'notify_discord' in actions or 'notify_email' in actions:
-            notify_all(subject, message, incident.severity)
+        actions, error = validate_actions(json.loads(pb.actions or '[]'))
+        if error:
+            raise ValueError(f"Playbook '{pb.name}' contains unsupported actions: {error}")
+        create_approved_execution(incident, pb.name, 'system', actions)
 
 
 @playbooks_bp.route('/playbooks', methods=['GET'])
@@ -76,9 +69,19 @@ def list_playbooks():
 @jwt_required()
 @role_required('admin')
 def create_playbook():
-    data = request.get_json()
-    if not data or not data.get('name'):
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data.get('name'):
         return jsonify({"error": "name is required"}), 400
+    if not isinstance(data['name'], str) or len(data['name']) > 120:
+        return jsonify({"error": "name must be text no longer than 120 characters"}), 400
+    actions, error = validate_actions(data.get('actions', []))
+    if error:
+        return jsonify({"error": error}), 400
+    trigger_severity = data.get('trigger_severity', 'Critical')
+    if not isinstance(trigger_severity, str) or trigger_severity not in {'Critical', 'High', 'Medium', 'Low', 'Any'}:
+        return jsonify({"error": "Invalid trigger_severity"}), 400
+    if 'enabled' in data and not isinstance(data['enabled'], bool):
+        return jsonify({"error": "enabled must be a boolean"}), 400
 
     if Playbook.query.filter_by(name=data['name']).first():
         return jsonify({"error": "Playbook name already exists"}), 400
@@ -86,8 +89,8 @@ def create_playbook():
     pb = Playbook(
         name=data['name'],
         description=data.get('description', ''),
-        trigger_severity=data.get('trigger_severity', 'Critical'),
-        actions=json.dumps(data.get('actions', [])),
+        trigger_severity=trigger_severity,
+        actions=json.dumps(actions),
         enabled=data.get('enabled', True)
     )
     db.session.add(pb)
@@ -100,17 +103,28 @@ def create_playbook():
 @role_required('admin')
 def update_playbook(pb_id):
     pb = Playbook.query.get_or_404(pb_id)
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "A JSON object is required"}), 400
 
     if 'name' in data:
+        if not isinstance(data['name'], str) or not data['name'].strip() or len(data['name']) > 120:
+            return jsonify({"error": "name must be text no longer than 120 characters"}), 400
         pb.name = data['name']
     if 'description' in data:
         pb.description = data['description']
     if 'trigger_severity' in data:
+        if not isinstance(data['trigger_severity'], str) or data['trigger_severity'] not in {'Critical', 'High', 'Medium', 'Low', 'Any'}:
+            return jsonify({"error": "Invalid trigger_severity"}), 400
         pb.trigger_severity = data['trigger_severity']
     if 'actions' in data:
-        pb.actions = json.dumps(data['actions'])
+        actions, error = validate_actions(data['actions'])
+        if error:
+            return jsonify({"error": error}), 400
+        pb.actions = json.dumps(actions)
     if 'enabled' in data:
+        if not isinstance(data['enabled'], bool):
+            return jsonify({"error": "enabled must be a boolean"}), 400
         pb.enabled = data['enabled']
 
     db.session.commit()
@@ -132,12 +146,42 @@ def delete_playbook(pb_id):
 @role_required('admin', 'analyst')
 def run_playbook(pb_id):
     pb = Playbook.query.get_or_404(pb_id)
-    data = request.get_json() or {}
+    if not pb.enabled:
+        return jsonify({"error": "Disabled playbooks cannot be run"}), 409
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify({"error": "A JSON object is required"}), 400
     incident_id = data.get('incident_id')
-    incident = Incident.query.get_or_404(incident_id) if incident_id else None
+    if not isinstance(incident_id, int) or incident_id <= 0:
+        return jsonify({"error": "incident_id is required"}), 400
+    incident = Incident.query.get_or_404(incident_id)
+    dry_run = data.get('dry_run', False)
+    if not isinstance(dry_run, bool):
+        return jsonify({"error": "dry_run must be a boolean"}), 400
 
-    if incident:
-        run_playbook_for_incident(incident)
-        return jsonify({"message": f"Playbook '{pb.name}' executed for incident #{incident_id}"})
+    try:
+        actions = json.loads(pb.actions or '[]')
+        execution = create_approved_execution(
+            incident,
+            pb.name,
+            get_jwt_identity(),
+            actions,
+            dry_run=dry_run,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
-    return jsonify({"message": f"Playbook '{pb.name}' executed"}), 200
+    record_audit(
+        get_jwt_identity(),
+        'soar.execution_previewed' if dry_run else 'soar.execution_requested',
+        f'execution/{execution.id}',
+        details={'playbook_id': pb.id, 'requires_approval': not dry_run},
+    )
+    return jsonify({
+        "message": (
+            f"Dry run completed for '{pb.name}'; no actions were performed."
+            if dry_run else
+            f"Playbook '{pb.name}' is awaiting administrator approval."
+        ),
+        "execution": execution.to_dict(),
+    }), 200 if dry_run else 202

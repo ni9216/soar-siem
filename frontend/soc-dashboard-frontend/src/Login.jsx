@@ -46,7 +46,7 @@ export default function Login({ onLogin }) {
       } else {
         setServerError(data.error || "Unable to sign in. Check credentials.");
       }
-    } catch (err) {
+    } catch {
       setServerError("Unable to connect to backend.");
     }
 
@@ -176,24 +176,6 @@ export default function Login({ onLogin }) {
           {loading ? "Signing in..." : "Sign in"}
         </button>
 
-        <div
-          style={{
-            marginTop: 20,
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            fontSize: 13,
-            color: "#64748b",
-          }}
-        >
-          <a
-            href="#"
-            onClick={(event) => event.preventDefault()}
-            style={{ color: "#60a5fa", textDecoration: "none" }}
-          >
-            Forgot password?
-          </a>
-        </div>
       </div>
     </div>
   );

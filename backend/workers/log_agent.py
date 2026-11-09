@@ -130,15 +130,17 @@ def login_and_get_token(username, password):
 if __name__ == '__main__':
     # Auto-login if credentials are provided
     username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
-    password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'password')
+    password = os.getenv('DEFAULT_ADMIN_PASSWORD')
 
-    if not API_TOKEN:
+    if not API_TOKEN and password:
         log.info(f'Logging in as {username}...')
         token = login_and_get_token(username, password)
         if token:
             API_TOKEN = token
         else:
             log.warning('Running without authentication — logs may be rejected')
+    elif not API_TOKEN:
+        log.warning('DEFAULT_ADMIN_PASSWORD not set — running without authentication')
 
     files = get_log_files()
 

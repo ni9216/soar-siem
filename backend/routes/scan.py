@@ -76,7 +76,7 @@ def scan_target():
         return jsonify(results)
 
     except Exception as e:
+        print(f"Scan error: {e}")  # Log for debugging
         return jsonify({
-            "error": "Scan failed",
-            "details": str(e)
+            "error": "Scan failed"
         }), 500

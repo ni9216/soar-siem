@@ -1,7 +1,8 @@
 from functools import wraps
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
-from models import db, User
+from models import db, SecuritySetting, User
+from services.audit import record_audit
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -43,6 +44,10 @@ def login():
     try:
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
+            mfa_policy = SecuritySetting.query.get('require_admin_mfa')
+            if user.role == 'admin' and mfa_policy and mfa_policy.value.lower() == 'true' and not user.totp_enabled:
+                record_audit(username, 'authentication.login', 'session', 'denied', {'reason': 'admin_mfa_required'})
+                return jsonify({"error": "Administrator MFA enrollment is required"}), 403
             # If 2FA is enabled, require TOTP code
             if user.totp_enabled:
                 code = data.get('totp_code', '').strip()
@@ -51,13 +56,16 @@ def login():
                 import pyotp
                 totp = pyotp.TOTP(user.totp_secret)
                 if not totp.verify(code):
+                    record_audit(username, 'authentication.login', 'session', 'denied', {'reason': 'invalid_totp'})
                     return jsonify({"error": "Invalid 2FA code"}), 401
             token = user.generate_token()
+            record_audit(username, 'authentication.login', 'session')
             return jsonify({"token": token, "role": user.role})
     except Exception as e:
         print(f"Login error: {e}")
         return jsonify({"error": "Authentication failed"}), 500
 
+    record_audit(username or 'anonymous', 'authentication.login', 'session', 'denied', {'reason': 'invalid_credentials'})
     return jsonify({
         "error": "Invalid credentials"
     }), 401
@@ -85,7 +93,7 @@ def register():
     
     if len(username) > 80 or len(password) > 256:
         return jsonify({"error": "username or password too long"}), 400
-    
+
     if len(password) < 6:
         return jsonify({"error": "password must be at least 6 characters"}), 400
 
@@ -102,7 +110,8 @@ def register():
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Failed to create user", "details": str(e)}), 500
+        print(f"User creation error: {e}")  # Log for debugging
+        return jsonify({"error": "Failed to create user"}), 500
 
     return jsonify({"message": "User created"}), 201
 
@@ -136,20 +145,29 @@ def get_users():
 @role_required('admin')
 def update_user(user_id):
     user = User.query.get_or_404(user_id)
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Request body required"}), 400
 
     if 'username' in data:
-        if User.query.filter_by(username=data['username']).filter(User.id != user_id).first():
+        username = data['username'].strip() if isinstance(data['username'], str) else ""
+        if not username or len(username) > 80:
+            return jsonify({"error": "Invalid username"}), 400
+        if User.query.filter_by(username=username).filter(User.id != user_id).first():
             return jsonify({"error": "Username already exists"}), 400
-        user.username = data['username']
+        user.username = username
 
     if 'password' in data and data['password']:
-        user.set_password(data['password'])
+        password = data['password']
+        if not isinstance(password, str) or len(password) < 6 or len(password) > 256:
+            return jsonify({"error": "Invalid password"}), 400
+        user.set_password(password)
 
     if 'role' in data:
-        if data['role'] not in ['admin', 'analyst', 'viewer']:
+        role = data['role'].strip().lower() if isinstance(data['role'], str) else ""
+        if role not in ['admin', 'analyst', 'viewer']:
             return jsonify({"error": "Invalid role specified"}), 400
-        user.role = data['role']
+        user.role = role
 
     db.session.commit()
 

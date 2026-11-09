@@ -26,7 +26,9 @@
 ### Core Security Capabilities
 - **Real-time Log Ingestion** - Process security logs from multiple sources
 - **ML-Powered Anomaly Detection** - Identify suspicious patterns using machine learning
-- **Automated Incident Response (SOAR)** - Trigger automated responses to security events
+- **Approval-gated SOAR workflows** - Review and approve notification or investigation actions
+- **Incident workflow tracking** - Assignment, status history, and severity-based SLA deadlines
+- **SOAR safety controls** - Dry-run previews, mandatory administrator approval, rejection, and rollback records
 - **Threat Intelligence Integration** - Query external threat feeds and databases
 - **MITRE ATT&CK Mapping** - Classify threats using industry-standard framework
 
@@ -44,6 +46,20 @@
 - **Search Engine** - Case-insensitive search across incidents
 - **Trend Analysis** - Historical security pattern analysis
 - **Port Scanning** - Network reconnaissance with nmap
+
+### Detection model evaluation
+
+The Isolation Forest baselines use expanded built-in synthetic normal-event samples. Run
+`python -m services.ml_evaluation` from the `backend` directory to print accuracy, precision,
+recall, F1, and confusion counts for each detector against the built-in labeled synthetic benchmark.
+These metrics measure only that fixture; they are not production accuracy estimates. Validate
+against representative, independently labeled events before relying on the models operationally.
+
+SOAR requests and playbooks created by log ingestion are queued for administrator approval.
+Dry runs do not execute actions. Approved notification actions may contact configured external
+channels; host isolation and network blocking are not implemented and remain manual actions.
+Rollback can restore an unchanged incident status, but it cannot retract notifications or undo
+external integrations.
 
 ## 🏗️ Architecture
 
@@ -77,8 +93,7 @@
 cd /path/to/soar-siem
 cp .env.example .env
 
-# Update .env with your values if needed
-# Default admin: admin / password
+# Update .env with your values if needed.
 
 docker-compose up -d
 ```
@@ -106,7 +121,7 @@ docker-compose exec backend python3 init_db.py
 
 ```
 Username: admin
-Password: password (CHANGE THIS!)
+Password: value of DEFAULT_ADMIN_PASSWORD
 ```
 
 ---

@@ -15,23 +15,23 @@ def init_database():
             return False
         
         admin_username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
-        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin')
-        
+        environment = os.getenv('ENVIRONMENT', 'development').lower()
+        admin_password = os.getenv('DEFAULT_ADMIN_PASSWORD')
+        if not admin_password and environment != 'production':
+            admin_password = 'password'
+
         try:
             existing_admin = User.query.filter_by(username=admin_username).first()
-            if not existing_admin:
+            if not existing_admin and admin_password:
                 admin = User(username=admin_username, role='admin')
                 admin.set_password(admin_password)
                 db.session.add(admin)
                 db.session.commit()
                 print(f"✓ Default admin user created: {admin_username}")
+            elif existing_admin:
+                print(f"✓ Admin user already exists: {admin_username}")
             else:
-                if not existing_admin.check_password(admin_password):
-                    existing_admin.set_password(admin_password)
-                    db.session.commit()
-                    print(f"✓ Admin password updated for: {admin_username}")
-                else:
-                    print(f"✓ Admin user already exists: {admin_username}")
+                print(f"⚠ DEFAULT_ADMIN_PASSWORD not set. Cannot create/update admin user.")
         except Exception as e:
             print(f"✗ Error setting up admin user: {e}")
             db.session.rollback()

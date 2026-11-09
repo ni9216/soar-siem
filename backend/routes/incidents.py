@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from models import Incident, User, db
 from sqlalchemy import func
 from datetime import datetime, timedelta
 from routes.auth import role_required
+from services.incident_workflow import append_incident_timeline
 
 incidents_bp = Blueprint("incidents", __name__)
 
@@ -37,7 +38,8 @@ def search_incidents():
         
         return jsonify([i.to_dict() for i in incidents])
     except Exception as e:
-        return jsonify({"error": "Search failed", "details": str(e)}), 500
+        print(f"Incident search error: {e}")  # Log for debugging
+        return jsonify({"error": "Search failed"}), 500
 
 
 @incidents_bp.route("/incidents/<int:incident_id>", methods=["PUT"])
@@ -45,12 +47,31 @@ def search_incidents():
 @role_required('admin', 'analyst')
 def update_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'A JSON object is required'}), 400
 
     if 'status' in data:
-        incident.status = data['status']
+        status = data['status']
+        allowed_statuses = {'open', 'triage', 'investigating', 'escalated', 'contained', 'resolved', 'closed'}
+        if status not in allowed_statuses:
+            return jsonify({'error': 'Invalid incident status'}), 400
+        if incident.status != status:
+            old_status = incident.status
+            incident.status = status
+            incident.closed_at = datetime.utcnow() if status in {'resolved', 'closed'} else None
+            append_incident_timeline(
+                incident,
+                get_jwt_identity(),
+                'status_changed',
+                {'from': old_status, 'to': status},
+            )
 
     if 'notes' in data:
+        if not isinstance(data['notes'], str) or len(data['notes']) > 10000:
+            return jsonify({'error': 'Notes must be text no longer than 10000 characters'}), 400
+        if incident.notes != data['notes']:
+            append_incident_timeline(incident, get_jwt_identity(), 'notes_updated')
         incident.notes = data['notes']
 
     db.session.commit()
@@ -65,10 +86,29 @@ def update_incident(incident_id):
 @role_required('admin', 'analyst')
 def assign_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or 'assigned_to' not in data:
+        return jsonify({'error': 'assigned_to is required'}), 400
 
-    if 'assigned_to' in data:
-        incident.assigned_to = data['assigned_to']
+    assigned_to = data['assigned_to']
+    if assigned_to is not None:
+        try:
+            assigned_to = int(assigned_to)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'assigned_to must be a valid analyst ID or null'}), 400
+        assignee = User.query.get(assigned_to)
+        if assignee is None or assignee.role not in {'admin', 'analyst'}:
+            return jsonify({'error': 'Assignee must be an existing analyst or administrator'}), 400
+
+    if incident.assigned_to != assigned_to:
+        previous_assignee = incident.assigned_to
+        incident.assigned_to = assigned_to
+        append_incident_timeline(
+            incident,
+            get_jwt_identity(),
+            'assigned',
+            {'from': previous_assignee, 'to': assigned_to},
+        )
 
     db.session.commit()
 
