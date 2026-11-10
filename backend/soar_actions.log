@@ -342,3 +342,141 @@
 2026-11-10 21:31:08,586 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10c7rksf&sid=WMbEFWM3PEOXkXHeAAAC HTTP/1.1" 200 -
 2026-11-10 21:31:08,588 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10c87jns&sid=HatfEkEPP36Rh3rlAAAB HTTP/1.1" 200 -
 2026-11-10 21:39:55,100 - INFO - 127.0.0.1 - - [10/Nov/2026 21:39:55] "GET /favicon.ico HTTP/1.1" 200 -
+2026-11-10 22:16:19,189 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/config.py', reloading
+2026-11-10 22:16:22,626 - INFO -  * Restarting with stat
+2026-11-10 22:16:26,267 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-10 22:16:26,277 - WARNING -  * Debugger is active!
+2026-11-10 22:16:26,321 - INFO -  * Debugger PIN: 579-200-640
+2026-11-10 22:16:26,353 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mjmnby4 HTTP/1.1" 200 -
+2026-11-10 22:16:26,354 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mjmn4s8 HTTP/1.1" 200 -
+2026-11-10 22:16:26,357 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mkcjndc HTTP/1.1" 200 -
+2026-11-10 22:16:26,493 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "POST /socket.io/?EIO=4&transport=polling&t=2mlldqqy&sid=smC9wR8Lb8s9DTlIAAAB HTTP/1.1" 200 -
+2026-11-10 22:16:26,508 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "POST /socket.io/?EIO=4&transport=polling&t=2mlm5t3i&sid=NZ5f2jjbRE5flwV5AAAC HTTP/1.1" 200 -
+2026-11-10 22:16:26,564 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mlnrnom&sid=NZ5f2jjbRE5flwV5AAAC HTTP/1.1" 200 -
+2026-11-10 22:16:26,596 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mlp7gc9&sid=NZ5f2jjbRE5flwV5AAAC HTTP/1.1" 200 -
+2026-11-10 22:16:26,809 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "POST /socket.io/?EIO=4&transport=polling&t=2mlmajtv&sid=3bKr3Cuc03QU06hHAAAA HTTP/1.1" 200 -
+2026-11-10 22:16:26,813 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mlmn4ix&sid=smC9wR8Lb8s9DTlIAAAB HTTP/1.1" 200 -
+2026-11-10 22:16:26,814 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:26] "GET /socket.io/?EIO=4&transport=polling&t=2mlmnhyk&sid=3bKr3Cuc03QU06hHAAAA HTTP/1.1" 200 -
+2026-11-10 22:16:27,140 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:27] "GET /socket.io/?EIO=4&transport=polling&t=2mlvui8c&sid=3bKr3Cuc03QU06hHAAAA HTTP/1.1" 200 -
+2026-11-10 22:16:27,141 - INFO - 127.0.0.1 - - [10/Nov/2026 22:16:27] "GET /socket.io/?EIO=4&transport=polling&t=2mlvqe8f&sid=smC9wR8Lb8s9DTlIAAAB HTTP/1.1" 200 -
+2026-11-10 22:17:18,340 - ERROR - Unable to migrate alert group deduplication schema
+Traceback (most recent call last):
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 144, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 3319, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/impl.py", line 178, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py", line 122, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/impl.py", line 176, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py", line 122, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/psycopg/connection.py", line 126, in connect
+    raise last_ex.with_traceback(None)
+psycopg.OperationalError: connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/liech/myfolder/soar-siem/backend/app.py", line 209, in migrate_alert_group_schema
+    if not inspect(db.engine).has_table('alert_group'):
+           ~~~~~~~^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/inspection.py", line 141, in inspect
+    ret = reg(subject)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/reflection.py", line 314, in _engine_insp
+    return Inspector._construct(Inspector._init_engine, bind)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/reflection.py", line 247, in _construct
+    init(self, bind)
+    ~~~~^^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/reflection.py", line 258, in _init_engine
+    engine.connect().close()
+    ~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 3295, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 146, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        err, dialect, engine
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 2450, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 144, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 3319, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/impl.py", line 178, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py", line 122, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/impl.py", line 176, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py", line 122, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/liech/myfolder/soar-siem/backend/venv/lib/python3.14/site-packages/psycopg/connection.py", line 126, in connect
+    raise last_ex.with_traceback(None)
+sqlalchemy.exc.OperationalError: (psycopg.OperationalError) connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
