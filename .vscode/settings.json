@@ -1,0 +1,7 @@
+{
+    "github.copilot.chat.recordVideoSkill.enabled": true,
+    "github.copilot.chat.responsesApi.promptCacheBreakpoint.enabled": true,
+    "github.copilot.chat.responsesApiContextManagement.enabled": true,
+    "github.copilot.chat.tools.readFile.allowLineAdjustments": true,
+    "github.copilot.chat.agent.autoFix": true
+}

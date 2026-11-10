@@ -1,0 +1,702 @@
+2026-09-05 01:03:06,168 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-09-05 01:03:06,168 - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 01:03:06,168 - INFO -  * Restarting with stat
+2026-09-05 01:03:08,525 - WARNING -  * Debugger is active!
+2026-09-05 01:03:08,545 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 01:04:03,774 - INFO - 127.0.0.1 - - [05/Sep/2026 01:04:03] "GET /api/status HTTP/1.1" 200 -
+2026-09-05 01:04:22,281 - INFO - 127.0.0.1 - - [05/Sep/2026 01:04:22] "GET /api/status HTTP/1.1" 200 -
+2026-09-05 01:04:22,547 - INFO - 127.0.0.1 - - [05/Sep/2026 01:04:22] "GET /favicon.ico HTTP/1.1" 200 -
+2026-09-05 01:14:15,271 - INFO - 127.0.0.1 - - [05/Sep/2026 01:14:15] "GET /api/status HTTP/1.1" 200 -
+2026-09-05 01:14:56,021 - INFO - 127.0.0.1 - - [05/Sep/2026 01:14:56] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-09-05 01:14:56,515 - INFO - 127.0.0.1 - - [05/Sep/2026 01:14:56] "[31m[1mPOST /api/login HTTP/1.1[0m" 401 -
+2026-09-05 01:15:58,187 - INFO - 127.0.0.1 - - [05/Sep/2026 01:15:58] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-09-05 01:15:58,552 - INFO - 127.0.0.1 - - [05/Sep/2026 01:15:58] "[31m[1mPOST /api/login HTTP/1.1[0m" 401 -
+2026-09-05 01:16:28,700 - INFO - 127.0.0.1 - - [05/Sep/2026 01:16:28] "[31m[1mPOST /api/login HTTP/1.1[0m" 401 -
+2026-09-05 01:17:05,625 - INFO - 127.0.0.1 - - [05/Sep/2026 01:17:05] "[31m[1mPOST /api/login HTTP/1.1[0m" 401 -
+2026-09-05 01:18:33,630 - INFO - 127.0.0.1 - - [05/Sep/2026 01:18:33] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:20:25,710 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:25] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-09-05 01:20:26,115 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:26] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:20:26,180 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:26] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-09-05 01:20:26,532 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:26] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-09-05 01:20:26,542 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:26] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-09-05 01:20:26,553 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:26] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-09-05 01:20:27,145 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:27] "GET /api/users HTTP/1.1" 200 -
+2026-09-05 01:20:27,154 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:27] "GET /api/incidents HTTP/1.1" 200 -
+2026-09-05 01:20:27,155 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:27] "GET /api/threats HTTP/1.1" 200 -
+2026-09-05 01:20:27,161 - INFO - 127.0.0.1 - - [05/Sep/2026 01:20:27] "GET /api/stats HTTP/1.1" 200 -
+2026-09-05 01:21:24,327 - INFO - 127.0.0.1 - - [05/Sep/2026 01:21:24] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:22:13,957 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:13] "[35m[1mGET /socket.io/?EIO=4&transport=websocket HTTP/1.1[0m" 500 -
+2026-09-05 01:22:51,187 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:51] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-09-05 01:22:51,662 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:51] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:22:51,677 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:51] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-09-05 01:22:51,988 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:51] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-09-05 01:22:51,991 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:51] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-09-05 01:22:52,762 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:52] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-09-05 01:22:52,776 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:52] "GET /api/users HTTP/1.1" 200 -
+2026-09-05 01:22:52,777 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:52] "GET /api/stats HTTP/1.1" 200 -
+2026-09-05 01:22:52,779 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:52] "GET /api/incidents HTTP/1.1" 200 -
+2026-09-05 01:22:53,085 - INFO - 127.0.0.1 - - [05/Sep/2026 01:22:53] "GET /api/threats HTTP/1.1" 200 -
+2026-09-05 01:27:55,482 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/models.py', reloading
+2026-09-05 01:27:56,972 - INFO -  * Restarting with stat
+2026-09-05 01:28:01,015 - WARNING -  * Debugger is active!
+2026-09-05 01:28:01,032 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 01:32:39,470 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/models.py', reloading
+2026-09-05 01:32:40,257 - INFO -  * Restarting with stat
+2026-09-05 01:32:43,051 - WARNING -  * Debugger is active!
+2026-09-05 01:32:43,061 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 01:32:44,306 - INFO - 127.0.0.1 - - [05/Sep/2026 01:32:44] "[35m[1mGET /socket.io/?EIO=4&transport=websocket HTTP/1.1[0m" 500 -
+2026-09-05 01:33:40,944 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/auth.py', reloading
+2026-09-05 01:33:41,645 - INFO -  * Restarting with stat
+2026-09-05 01:33:44,216 - WARNING -  * Debugger is active!
+2026-09-05 01:33:44,226 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 01:34:07,619 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:34:07,634 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/security-policy HTTP/1.1" 200 -
+2026-09-05 01:34:07,654 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/rules/coverage HTTP/1.1" 200 -
+2026-09-05 01:34:07,668 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/alert-groups HTTP/1.1" 200 -
+2026-09-05 01:34:07,678 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/soar/executions HTTP/1.1" 200 -
+2026-09-05 01:34:07,692 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/operations/health HTTP/1.1" 200 -
+2026-09-05 01:34:07,700 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/tenants HTTP/1.1" 200 -
+2026-09-05 01:34:07,711 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:07] "GET /api/audit-logs HTTP/1.1" 200 -
+2026-09-05 01:34:20,931 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/enterprise.py', reloading
+2026-09-05 01:34:21,556 - INFO -  * Restarting with stat
+2026-09-05 01:34:22,860 - WARNING -  * Debugger is active!
+2026-09-05 01:34:22,862 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 01:34:36,009 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:36] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:34:36,040 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:36] "[35m[1mPOST /api/rules HTTP/1.1[0m" 201 -
+2026-09-05 01:34:36,082 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:36] "POST /api/rules/1/test HTTP/1.1" 200 -
+2026-09-05 01:34:36,094 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:36] "GET /api/rules/coverage HTTP/1.1" 200 -
+2026-09-05 01:34:36,123 - INFO - 127.0.0.1 - - [05/Sep/2026 01:34:36] "DELETE /api/rules/1 HTTP/1.1" 200 -
+2026-09-05 01:45:09,202 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 01:45:09,245 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "[35m[1mPOST /api/rules HTTP/1.1[0m" 201 -
+2026-09-05 01:45:09,275 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "GET /api/rules HTTP/1.1" 200 -
+2026-09-05 01:45:09,297 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "POST /api/rules/1/test HTTP/1.1" 200 -
+2026-09-05 01:45:09,328 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "POST /api/rules/1/test HTTP/1.1" 200 -
+2026-09-05 01:45:09,358 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "PUT /api/rules/1 HTTP/1.1" 200 -
+2026-09-05 01:45:09,370 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "GET /api/rules/coverage HTTP/1.1" 200 -
+2026-09-05 01:45:09,397 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "DELETE /api/rules/1 HTTP/1.1" 200 -
+2026-09-05 01:45:09,405 - INFO - 127.0.0.1 - - [05/Sep/2026 01:45:09] "GET /api/rules HTTP/1.1" 200 -
+2026-09-05 01:46:44,129 - INFO - 127.0.0.1 - - [05/Sep/2026 01:46:44] "GET /api/status HTTP/1.1" 200 -
+2026-09-05 01:50:12,136 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/app.py', reloading
+2026-09-05 01:50:14,291 - INFO -  * Restarting with stat
+2026-09-05 01:50:17,318 - WARNING -  * Debugger is active!
+2026-09-05 01:50:17,337 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 01:54:50,933 - INFO - 127.0.0.1 - - [05/Sep/2026 01:54:50] "GET /api/status HTTP/1.1" 200 -
+2026-09-05 01:59:03,673 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/models.py', reloading
+2026-09-05 01:59:04,403 - INFO -  * Restarting with stat
+2026-09-05 01:59:06,589 - WARNING -  * Debugger is active!
+2026-09-05 01:59:06,604 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 02:00:19,101 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/logs.py', reloading
+2026-09-05 02:00:19,700 - INFO -  * Restarting with stat
+2026-09-05 02:00:21,817 - WARNING -  * Debugger is active!
+2026-09-05 02:00:21,822 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 02:01:01,590 - INFO - 127.0.0.1 - - [05/Sep/2026 02:01:01] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:01:01,724 - INFO - 127.0.0.1 - - [05/Sep/2026 02:01:01] "POST /api/logs HTTP/1.1" 200 -
+2026-09-05 02:02:27,792 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:27] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-09-05 02:02:28,145 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:02:28,175 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-09-05 02:02:28,498 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-09-05 02:02:28,504 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-09-05 02:02:28,513 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-09-05 02:02:28,520 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "GET /api/incidents HTTP/1.1" 200 -
+2026-09-05 02:02:28,826 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "GET /api/threats HTTP/1.1" 200 -
+2026-09-05 02:02:28,829 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "GET /api/stats HTTP/1.1" 200 -
+2026-09-05 02:02:28,831 - INFO - 127.0.0.1 - - [05/Sep/2026 02:02:28] "GET /api/users HTTP/1.1" 200 -
+2026-09-05 02:03:01,987 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-09-05 02:03:01,987 - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 02:03:16,953 - INFO - 127.0.0.1 - - [05/Sep/2026 02:03:16] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:03:16,964 - INFO - 127.0.0.1 - - [05/Sep/2026 02:03:16] "[31m[1mPOST /api/ingestion/sources HTTP/1.1[0m" 405 -
+2026-09-05 02:03:36,533 - INFO - 127.0.0.1 - - [05/Sep/2026 02:03:36] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:03:36,549 - INFO - 127.0.0.1 - - [05/Sep/2026 02:03:36] "GET /api/ingestion/sources HTTP/1.1" 200 -
+2026-09-05 02:03:36,555 - INFO - 127.0.0.1 - - [05/Sep/2026 02:03:36] "GET /api/ingestion/events?limit=5 HTTP/1.1" 200 -
+2026-09-05 02:04:17,464 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "OPTIONS /api/rules HTTP/1.1" 200 -
+2026-09-05 02:04:17,467 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "OPTIONS /api/audit-logs?limit=20 HTTP/1.1" 200 -
+2026-09-05 02:04:17,471 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "OPTIONS /api/soar/executions HTTP/1.1" 200 -
+2026-09-05 02:04:17,478 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "OPTIONS /api/operations/health HTTP/1.1" 200 -
+2026-09-05 02:04:17,485 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "OPTIONS /api/security-policy HTTP/1.1" 200 -
+2026-09-05 02:04:17,715 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "GET /api/rules HTTP/1.1" 200 -
+2026-09-05 02:04:17,797 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "GET /api/audit-logs?limit=20 HTTP/1.1" 200 -
+2026-09-05 02:04:17,800 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "GET /api/soar/executions HTTP/1.1" 200 -
+2026-09-05 02:04:17,822 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "GET /api/security-policy HTTP/1.1" 200 -
+2026-09-05 02:04:17,822 - INFO - 127.0.0.1 - - [05/Sep/2026 02:04:17] "GET /api/operations/health HTTP/1.1" 200 -
+2026-09-05 02:04:46,905 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-09-05 02:04:46,905 - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 02:05:12,903 - INFO - 127.0.0.1 - - [05/Sep/2026 02:05:12] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:05:13,016 - INFO - 127.0.0.1 - - [05/Sep/2026 02:05:13] "[35m[1mPOST /api/ingestion/sources HTTP/1.1[0m" 201 -
+2026-09-05 02:05:13,251 - INFO - Task soar.process_security_event[ad74b3b1-b199-4835-b438-a51ea39bbf1c] succeeded in 0.08850103600070724s: {'status': 'processed'}
+2026-09-05 02:05:13,253 - INFO - 127.0.0.1 - - [05/Sep/2026 02:05:13] "[35m[1mPOST /api/ingest HTTP/1.1[0m" 202 -
+2026-09-05 02:05:57,682 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-09-05 02:05:57,682 - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 02:05:57,683 - INFO -  * Restarting with stat
+2026-09-05 02:05:59,057 - WARNING -  * Debugger is active!
+2026-09-05 02:05:59,063 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 02:06:22,086 - INFO - 127.0.0.1 - - [05/Sep/2026 02:06:22] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:06:22,188 - INFO - 127.0.0.1 - - [05/Sep/2026 02:06:22] "[35m[1mPOST /api/ingestion/sources HTTP/1.1[0m" 201 -
+2026-09-05 02:06:22,486 - INFO - Task soar.process_security_event[8d25297f-1fd1-4a79-b95a-14e9a3869eec] succeeded in 0.08543330900010915s: {'status': 'processed'}
+2026-09-05 02:06:22,486 - INFO - 127.0.0.1 - - [05/Sep/2026 02:06:22] "[35m[1mPOST /api/ingest HTTP/1.1[0m" 202 -
+2026-09-05 02:06:29,638 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/ingestion.py', reloading
+2026-09-05 02:06:30,376 - INFO -  * Restarting with stat
+2026-09-05 02:06:32,001 - WARNING -  * Debugger is active!
+2026-09-05 02:06:32,004 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 02:06:42,520 - INFO - 127.0.0.1 - - [05/Sep/2026 02:06:42] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:06:42,709 - INFO - 127.0.0.1 - - [05/Sep/2026 02:06:42] "[35m[1mPOST /api/ingestion/sources HTTP/1.1[0m" 201 -
+2026-09-05 02:06:43,042 - INFO - Task soar.process_security_event[d10dda18-9f41-429e-85ba-65f0dc627f23] succeeded in 0.0765127559998291s: {'status': 'processed'}
+2026-09-05 02:06:43,043 - INFO - 127.0.0.1 - - [05/Sep/2026 02:06:43] "[35m[1mPOST /api/ingest HTTP/1.1[0m" 202 -
+2026-09-05 02:07:10,721 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/ingestion.py', reloading
+2026-09-05 02:07:11,277 - INFO -  * Restarting with stat
+2026-09-05 02:07:12,630 - WARNING -  * Debugger is active!
+2026-09-05 02:07:12,632 - INFO -  * Debugger PIN: 157-774-454
+2026-09-05 02:07:43,246 - INFO - 127.0.0.1 - - [05/Sep/2026 02:07:43] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:07:43,392 - INFO - 127.0.0.1 - - [05/Sep/2026 02:07:43] "[35m[1mPOST /api/ingestion/sources HTTP/1.1[0m" 201 -
+2026-09-05 02:07:43,791 - INFO - Task soar.process_security_event[c8e5109c-7aed-4f6f-bb1e-9885699c29a6] succeeded in 0.07555184600005305s: {'status': 'processed'}
+2026-09-05 02:07:43,792 - INFO - 127.0.0.1 - - [05/Sep/2026 02:07:43] "[35m[1mPOST /api/ingest HTTP/1.1[0m" 202 -
+2026-09-05 02:10:34,587 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-09-05 02:10:34,587 - INFO - [33mPress CTRL+C to quit[0m
+2026-09-05 02:11:28,373 - INFO - 127.0.0.1 - - [05/Sep/2026 02:11:28] "POST /api/login HTTP/1.1" 200 -
+2026-09-05 02:11:28,484 - INFO - 127.0.0.1 - - [05/Sep/2026 02:11:28] "[35m[1mPOST /api/ingestion/sources HTTP/1.1[0m" 201 -
+2026-09-05 02:11:28,993 - INFO - Task soar.process_security_event[aec8bfe4-dbd5-4159-a336-adac1aeea1a2] succeeded in 0.08388833199933288s: {'status': 'processed'}
+2026-09-05 02:11:28,994 - INFO - 127.0.0.1 - - [05/Sep/2026 02:11:28] "[35m[1mPOST /api/ingest HTTP/1.1[0m" 202 -
+2026-11-09 17:15:22,502 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:15:22,520 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-11-09 17:15:22,520 - INFO - [33mPress CTRL+C to quit[0m
+2026-11-09 17:15:22,521 - INFO -  * Restarting with stat
+2026-11-09 17:15:26,589 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:15:26,598 - WARNING -  * Debugger is active!
+2026-11-09 17:15:26,632 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:15:26,683 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:26] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:15:55,989 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:55] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:15:55,992 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:55] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:15:55,996 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:55] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:15:55,999 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:55] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:15:56,032 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:56] "[35m[1mGET /socket.io/?EIO=4&transport=websocket HTTP/1.1[0m" 500 -
+2026-11-09 17:15:56,235 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:56] "[31m[1mGET /api/incidents HTTP/1.1[0m" 401 -
+2026-11-09 17:15:56,304 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:56] "[31m[1mGET /api/users HTTP/1.1[0m" 401 -
+2026-11-09 17:15:56,307 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:56] "[31m[1mGET /api/stats HTTP/1.1[0m" 401 -
+2026-11-09 17:15:56,309 - INFO - 127.0.0.1 - - [09/Nov/2026 17:15:56] "[31m[1mGET /api/threats HTTP/1.1[0m" 401 -
+2026-11-09 17:16:02,318 - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:02] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:16:55,698 - INFO - 127.0.0.1 - - [09/Nov/2026 17:16:55] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:18:06,394 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:06] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-11-09 17:18:07,203 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:18:07,278 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:18:07,600 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:18:07,602 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:18:07,607 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:18:07,625 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:18:07,971 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:18:07,981 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:18:07,981 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:07] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:18:42,754 - INFO - 127.0.0.1 - - [09/Nov/2026 17:18:42] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:36:07,935 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:07] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-11-09 17:36:08,470 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:08] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:36:08,566 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:08] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:36:08,876 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:08] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:36:08,879 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:08] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:36:08,885 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:08] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:36:08,922 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:08] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:36:09,212 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:09] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:36:09,221 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:09] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:36:09,223 - INFO - 127.0.0.1 - - [09/Nov/2026 17:36:09] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:38:38,741 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:38] "[35m[1mGET /socket.io/?EIO=4&transport=websocket HTTP/1.1[0m" 500 -
+2026-11-09 17:38:39,148 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /socket.io/?EIO=4&transport=polling&t=d9i3ghpw HTTP/1.1" 200 -
+2026-11-09 17:38:39,167 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:38:39,170 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:38:39,171 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /socket.io/?EIO=4&transport=polling&t=d9i3kz8g HTTP/1.1" 200 -
+2026-11-09 17:38:39,176 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:38:39,179 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:38:39,610 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /socket.io/?EIO=4&transport=polling&t=d9iflh3u&sid=TdsT_0Cdf4Hgum34AAAG HTTP/1.1" 200 -
+2026-11-09 17:38:39,618 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:38:39,616 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "POST /socket.io/?EIO=4&transport=polling&t=d9ifg3w4&sid=TdsT_0Cdf4Hgum34AAAG HTTP/1.1" 200 -
+2026-11-09 17:38:39,620 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:38:39,627 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:38:39,632 - INFO - 127.0.0.1 - - [09/Nov/2026 17:38:39] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:39:04,728 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:04] "OPTIONS /api/register HTTP/1.1" 200 -
+2026-11-09 17:39:05,576 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:05] "[35m[1mPOST /api/register HTTP/1.1[0m" 201 -
+2026-11-09 17:39:05,585 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:05] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:39:05,913 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:05] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:39:49,198 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:49] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:39:49,221 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:49] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:39:49,236 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:49] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:39:49,247 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:49] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:39:56,434 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=TdsT_0Cdf4Hgum34AAAG HTTP/1.1[0m" 500 -
+2026-11-09 17:39:56,512 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "GET /socket.io/?EIO=4&transport=polling&t=db61mq5y HTTP/1.1" 200 -
+2026-11-09 17:39:56,823 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "GET /socket.io/?EIO=4&transport=polling&t=db61o0bn HTTP/1.1" 200 -
+2026-11-09 17:39:56,827 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:39:56,830 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:39:56,834 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:39:56,837 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:56] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:39:57,160 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:57] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:39:57,168 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:57] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:39:57,176 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:57] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:39:57,177 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:57] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:39:57,254 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:57] "POST /socket.io/?EIO=4&transport=polling&t=db6d19g9&sid=YhWJf2w-1TPO82p7AAAK HTTP/1.1" 200 -
+2026-11-09 17:39:57,255 - INFO - 127.0.0.1 - - [09/Nov/2026 17:39:57] "GET /socket.io/?EIO=4&transport=polling&t=db6d2h06&sid=YhWJf2w-1TPO82p7AAAK HTTP/1.1" 200 -
+2026-11-09 17:40:24,090 - INFO - 127.0.0.1 - - [09/Nov/2026 17:40:24] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:41:49,738 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:49] "GET /socket.io/?EIO=4&transport=polling&t=ddl4jgmn HTTP/1.1" 200 -
+2026-11-09 17:41:49,743 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:49] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:41:49,749 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:49] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:41:49,752 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:49] "GET /socket.io/?EIO=4&transport=polling&t=ddl4n5cl HTTP/1.1" 200 -
+2026-11-09 17:41:49,757 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:49] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:41:49,765 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:49] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:41:50,199 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:50] "GET /socket.io/?EIO=4&transport=polling&t=ddlhn94n&sid=946I2J3dn_fbDrNcAAAN HTTP/1.1" 200 -
+2026-11-09 17:41:50,220 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:50] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:41:50,221 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:50] "POST /socket.io/?EIO=4&transport=polling&t=ddlhlgzf&sid=946I2J3dn_fbDrNcAAAN HTTP/1.1" 200 -
+2026-11-09 17:41:50,224 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:50] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:41:50,228 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:50] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:41:50,230 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:50] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:41:51,297 - INFO - 127.0.0.1 - - [09/Nov/2026 17:41:51] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=946I2J3dn_fbDrNcAAAN HTTP/1.1[0m" 500 -
+2026-11-09 17:50:01,824 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/auth.py', reloading
+2026-11-09 17:50:04,167 - INFO -  * Restarting with stat
+2026-11-09 17:50:08,236 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:50:08,246 - WARNING -  * Debugger is active!
+2026-11-09 17:50:08,283 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:50:08,352 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:08] "GET /socket.io/?EIO=4&transport=polling&t=do852jqf HTTP/1.1" 200 -
+2026-11-09 17:50:08,403 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:08] "POST /socket.io/?EIO=4&transport=polling&t=doa5whaa&sid=k5N8EQReBiqzLrAfAAAB HTTP/1.1" 200 -
+2026-11-09 17:50:08,723 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:08] "GET /socket.io/?EIO=4&transport=polling&t=doa6r942&sid=k5N8EQReBiqzLrAfAAAB HTTP/1.1" 200 -
+2026-11-09 17:50:08,984 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:08] "GET /socket.io/?EIO=4&transport=polling&t=doafq335&sid=k5N8EQReBiqzLrAfAAAB HTTP/1.1" 200 -
+2026-11-09 17:50:09,397 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/auth.py', reloading
+2026-11-09 17:50:10,174 - INFO -  * Restarting with stat
+2026-11-09 17:50:11,606 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:50:11,609 - WARNING -  * Debugger is active!
+2026-11-09 17:50:11,612 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:50:12,031 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:12] "GET /socket.io/?EIO=4&transport=polling&t=docpuvyx HTTP/1.1" 200 -
+2026-11-09 17:50:12,270 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:12] "POST /socket.io/?EIO=4&transport=polling&t=doczlu7c&sid=7EcZ3u7FJwqpfAmWAAAA HTTP/1.1" 200 -
+2026-11-09 17:50:12,342 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:12] "GET /socket.io/?EIO=4&transport=polling&t=docznyf8&sid=7EcZ3u7FJwqpfAmWAAAA HTTP/1.1" 200 -
+2026-11-09 17:50:12,347 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:12] "GET /socket.io/?EIO=4&transport=polling&t=dod88jsb&sid=7EcZ3u7FJwqpfAmWAAAA HTTP/1.1" 200 -
+2026-11-09 17:50:21,791 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/auth.py', reloading
+2026-11-09 17:50:22,542 - INFO -  * Restarting with stat
+2026-11-09 17:50:24,229 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:50:24,231 - WARNING -  * Debugger is active!
+2026-11-09 17:50:24,235 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:50:24,251 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:24] "GET /socket.io/?EIO=4&transport=polling&t=dolzgjnl HTTP/1.1" 200 -
+2026-11-09 17:50:24,272 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:24] "POST /socket.io/?EIO=4&transport=polling&t=domfeqqm&sid=YHI6Vc02av-DEWy-AAAA HTTP/1.1" 200 -
+2026-11-09 17:50:24,586 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:24] "GET /socket.io/?EIO=4&transport=polling&t=domfg5as&sid=YHI6Vc02av-DEWy-AAAA HTTP/1.1" 200 -
+2026-11-09 17:50:24,913 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:24] "GET /socket.io/?EIO=4&transport=polling&t=domoglm2&sid=YHI6Vc02av-DEWy-AAAA HTTP/1.1" 200 -
+2026-11-09 17:50:32,397 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/config.py', reloading
+2026-11-09 17:50:33,165 - INFO -  * Restarting with stat
+2026-11-09 17:50:34,910 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:50:34,912 - WARNING -  * Debugger is active!
+2026-11-09 17:50:34,916 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:50:34,998 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:34] "GET /socket.io/?EIO=4&transport=polling&t=dougmwsk HTTP/1.1" 200 -
+2026-11-09 17:50:35,260 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:35] "POST /socket.io/?EIO=4&transport=polling&t=douptgdq&sid=Of1sDDdzwX_nK7yNAAAA HTTP/1.1" 200 -
+2026-11-09 17:50:35,323 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:35] "GET /socket.io/?EIO=4&transport=polling&t=doupx2qb&sid=Of1sDDdzwX_nK7yNAAAA HTTP/1.1" 200 -
+2026-11-09 17:50:43,080 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/app.py', reloading
+2026-11-09 17:50:43,842 - INFO -  * Restarting with stat
+2026-11-09 17:50:45,510 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:50:45,513 - WARNING -  * Debugger is active!
+2026-11-09 17:50:45,517 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:50:46,022 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:46] "GET /socket.io/?EIO=4&transport=polling&t=dp2ynji3 HTTP/1.1" 200 -
+2026-11-09 17:50:46,290 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:46] "POST /socket.io/?EIO=4&transport=polling&t=dp3841ja&sid=93qaPAhy4Lr0vcsMAAAB HTTP/1.1" 200 -
+2026-11-09 17:50:46,348 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:46] "GET /socket.io/?EIO=4&transport=polling&t=dp385mhg&sid=93qaPAhy4Lr0vcsMAAAB HTTP/1.1" 200 -
+2026-11-09 17:50:46,355 - INFO - 127.0.0.1 - - [09/Nov/2026 17:50:46] "GET /socket.io/?EIO=4&transport=polling&t=dp3gwg5r&sid=93qaPAhy4Lr0vcsMAAAB HTTP/1.1" 200 -
+2026-11-09 17:51:19,070 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=93qaPAhy4Lr0vcsMAAAB HTTP/1.1[0m" 500 -
+2026-11-09 17:51:19,080 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "[35m[1mGET /socket.io/?EIO=4&transport=websocket HTTP/1.1[0m" 500 -
+2026-11-09 17:51:19,342 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /socket.io/?EIO=4&transport=polling&t=dpsoio16 HTTP/1.1" 200 -
+2026-11-09 17:51:19,346 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /socket.io/?EIO=4&transport=polling&t=dpsoopuw HTTP/1.1" 200 -
+2026-11-09 17:51:19,377 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:51:19,379 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:51:19,382 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:51:19,384 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:51:19,385 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:51:19,389 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:51:19,392 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:51:19,393 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:51:19,650 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "POST /socket.io/?EIO=4&transport=polling&t=dpsxgfkp&sid=DY0C_Pdke1ri6JjiAAAF HTTP/1.1" 200 -
+2026-11-09 17:51:19,658 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "POST /socket.io/?EIO=4&transport=polling&t=dpsxgu3b&sid=mNX6gAGkO_T4HT7oAAAE HTTP/1.1" 200 -
+2026-11-09 17:51:19,690 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /socket.io/?EIO=4&transport=polling&t=dpsy623h&sid=DY0C_Pdke1ri6JjiAAAF HTTP/1.1" 200 -
+2026-11-09 17:51:19,696 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /socket.io/?EIO=4&transport=polling&t=dpsy8yxn&sid=mNX6gAGkO_T4HT7oAAAE HTTP/1.1" 200 -
+2026-11-09 17:51:19,728 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:51:19,730 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:51:19,742 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:51:19,753 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:51:19,758 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:51:19,761 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:51:19,763 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:51:19,766 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:19] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:51:20,071 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:20] "GET /socket.io/?EIO=4&transport=polling&t=dpt8vduk&sid=mNX6gAGkO_T4HT7oAAAE HTTP/1.1" 200 -
+2026-11-09 17:51:20,086 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:20] "GET /socket.io/?EIO=4&transport=polling&t=dpt97zvf&sid=DY0C_Pdke1ri6JjiAAAF HTTP/1.1" 200 -
+2026-11-09 17:51:33,461 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/init_db.py', reloading
+2026-11-09 17:51:34,962 - INFO -  * Restarting with stat
+2026-11-09 17:51:39,201 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:51:39,205 - WARNING -  * Debugger is active!
+2026-11-09 17:51:39,227 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:51:39,246 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:39] "GET /socket.io/?EIO=4&transport=polling&t=dq5jbrfc HTTP/1.1" 200 -
+2026-11-09 17:51:39,247 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:39] "GET /socket.io/?EIO=4&transport=polling&t=dq6b5zxy HTTP/1.1" 200 -
+2026-11-09 17:51:39,259 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:39] "POST /socket.io/?EIO=4&transport=polling&t=dq8abi3o&sid=m8rnT-qeAsk-oqiPAAAA HTTP/1.1" 200 -
+2026-11-09 17:51:39,271 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:39] "POST /socket.io/?EIO=4&transport=polling&t=dq8adf2c&sid=ssMwQeq9E3S3unG9AAAB HTTP/1.1" 200 -
+2026-11-09 17:51:39,590 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:39] "GET /socket.io/?EIO=4&transport=polling&t=dq8aqp1a&sid=m8rnT-qeAsk-oqiPAAAA HTTP/1.1" 200 -
+2026-11-09 17:51:39,598 - INFO - 127.0.0.1 - - [09/Nov/2026 17:51:39] "GET /socket.io/?EIO=4&transport=polling&t=dq8ayg1z&sid=ssMwQeq9E3S3unG9AAAB HTTP/1.1" 200 -
+2026-11-09 17:52:53,417 - INFO - 127.0.0.1 - - [09/Nov/2026 17:52:53] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:52:53,429 - INFO - 127.0.0.1 - - [09/Nov/2026 17:52:53] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:52:53,441 - INFO - 127.0.0.1 - - [09/Nov/2026 17:52:53] "PUT /api/users/1 HTTP/1.1" 200 -
+2026-11-09 17:52:53,451 - INFO - 127.0.0.1 - - [09/Nov/2026 17:52:53] "[35m[1mPOST /api/password-reset/request HTTP/1.1[0m" 503 -
+2026-11-09 17:53:01,715 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:01] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:53:01,720 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:01] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:53:01,725 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:01] "PUT /api/users/1 HTTP/1.1" 200 -
+2026-11-09 17:53:16,479 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:53:16,488 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-11-09 17:53:16,488 - INFO - [33mPress CTRL+C to quit[0m
+2026-11-09 17:53:16,488 - INFO -  * Restarting with stat
+2026-11-09 17:53:19,525 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:53:19,532 - WARNING -  * Debugger is active!
+2026-11-09 17:53:19,544 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:53:19,572 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:19] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:53:19,574 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:19] "GET /socket.io/?EIO=4&transport=polling&t=dsaovxmq HTTP/1.1" 200 -
+2026-11-09 17:53:19,602 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:19] "POST /socket.io/?EIO=4&transport=polling&t=dsdpmn8d&sid=P_TyW5RstgXMKc07AAAA HTTP/1.1" 200 -
+2026-11-09 17:53:19,928 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:19] "GET /socket.io/?EIO=4&transport=polling&t=dsdq02au&sid=P_TyW5RstgXMKc07AAAA HTTP/1.1" 200 -
+2026-11-09 17:53:21,049 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:21] "GET /socket.io/?EIO=4&transport=polling&t=dsekam5v HTTP/1.1" 200 -
+2026-11-09 17:53:21,319 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:21] "POST /socket.io/?EIO=4&transport=polling&t=dseu9b45&sid=b9p4PkL8leEaawqHAAAC HTTP/1.1" 200 -
+2026-11-09 17:53:21,378 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:21] "GET /socket.io/?EIO=4&transport=polling&t=dseugz6b&sid=b9p4PkL8leEaawqHAAAC HTTP/1.1" 200 -
+2026-11-09 17:53:21,388 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:21] "GET /socket.io/?EIO=4&transport=polling&t=dsf3efke&sid=b9p4PkL8leEaawqHAAAC HTTP/1.1" 200 -
+2026-11-09 17:53:26,610 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:26] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:53:26,615 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:26] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:53:26,620 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:26] "PUT /api/users/1 HTTP/1.1" 200 -
+2026-11-09 17:53:26,623 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:26] "[35m[1mPOST /api/password-reset/request HTTP/1.1[0m" 503 -
+2026-11-09 17:53:33,051 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:33] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:53:33,055 - INFO - 127.0.0.1 - - [09/Nov/2026 17:53:33] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:54:00,320 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/auth.py', reloading
+2026-11-09 17:54:01,821 - INFO -  * Restarting with stat
+2026-11-09 17:54:04,389 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:54:04,394 - WARNING -  * Debugger is active!
+2026-11-09 17:54:04,403 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:54:04,420 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:04] "GET /socket.io/?EIO=4&transport=polling&t=dtayokif HTTP/1.1" 200 -
+2026-11-09 17:54:04,422 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:04] "GET /socket.io/?EIO=4&transport=polling&t=dtbr0xwu HTTP/1.1" 200 -
+2026-11-09 17:54:04,465 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:04] "POST /socket.io/?EIO=4&transport=polling&t=dtcbmqlf&sid=PKOvR8QcXb98twCIAAAA HTTP/1.1" 200 -
+2026-11-09 17:54:04,466 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:04] "POST /socket.io/?EIO=4&transport=polling&t=dtcbryb0&sid=_Fb3xS5nyTUgAHqGAAAB HTTP/1.1" 200 -
+2026-11-09 17:54:04,768 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:04] "GET /socket.io/?EIO=4&transport=polling&t=dtcbt221&sid=PKOvR8QcXb98twCIAAAA HTTP/1.1" 200 -
+2026-11-09 17:54:04,814 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:04] "GET /socket.io/?EIO=4&transport=polling&t=dtcbxqbt&sid=_Fb3xS5nyTUgAHqGAAAB HTTP/1.1" 200 -
+2026-11-09 17:54:05,096 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:05] "GET /socket.io/?EIO=4&transport=polling&t=dtcknes2&sid=PKOvR8QcXb98twCIAAAA HTTP/1.1" 200 -
+2026-11-09 17:54:34,307 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:54:34,321 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-11-09 17:54:34,321 - INFO - [33mPress CTRL+C to quit[0m
+2026-11-09 17:54:34,321 - INFO -  * Restarting with stat
+2026-11-09 17:54:37,409 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 17:54:37,413 - WARNING -  * Debugger is active!
+2026-11-09 17:54:37,422 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 17:54:37,442 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:37] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:54:37,448 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:37] "GET /socket.io/?EIO=4&transport=polling&t=du17dzwq HTTP/1.1" 200 -
+2026-11-09 17:54:37,472 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:37] "POST /socket.io/?EIO=4&transport=polling&t=du1sq2qy&sid=SomNRgYLW5L9GoDlAAAA HTTP/1.1" 200 -
+2026-11-09 17:54:37,796 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:37] "GET /socket.io/?EIO=4&transport=polling&t=du1t2dqd&sid=SomNRgYLW5L9GoDlAAAA HTTP/1.1" 200 -
+2026-11-09 17:54:38,058 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:38] "GET /socket.io/?EIO=4&transport=polling&t=du228b09&sid=SomNRgYLW5L9GoDlAAAA HTTP/1.1" 200 -
+2026-11-09 17:54:39,035 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:39] "GET /socket.io/?EIO=4&transport=polling&t=du2r12sl HTTP/1.1" 200 -
+2026-11-09 17:54:39,302 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:39] "POST /socket.io/?EIO=4&transport=polling&t=du3109e5&sid=0xKr8Wvab9vLGeudAAAC HTTP/1.1" 200 -
+2026-11-09 17:54:39,382 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:39] "GET /socket.io/?EIO=4&transport=polling&t=du317z3w&sid=0xKr8Wvab9vLGeudAAAC HTTP/1.1" 200 -
+2026-11-09 17:54:39,416 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:39] "GET /socket.io/?EIO=4&transport=polling&t=du3asg0x&sid=0xKr8Wvab9vLGeudAAAC HTTP/1.1" 200 -
+2026-11-09 17:54:45,872 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:45] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 17:54:45,880 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:45] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:54:45,883 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:45] "[35m[1mPOST /api/password-reset/request HTTP/1.1[0m" 503 -
+2026-11-09 17:54:57,913 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:57] "GET /socket.io/?EIO=4&transport=polling&t=duhc3b9t HTTP/1.1" 200 -
+2026-11-09 17:54:57,914 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:57] "GET /socket.io/?EIO=4&transport=polling&t=duhc0uzv HTTP/1.1" 200 -
+2026-11-09 17:54:57,921 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:57] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:54:57,923 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:57] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 17:54:57,924 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:57] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 17:54:57,928 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:57] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 17:54:58,263 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 17:54:58,271 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 17:54:58,276 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 17:54:58,279 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "POST /socket.io/?EIO=4&transport=polling&t=duhm1lj1&sid=esjAX-kHnaYX4cdOAAAE HTTP/1.1" 200 -
+2026-11-09 17:54:58,280 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "GET /socket.io/?EIO=4&transport=polling&t=duhm2iw6&sid=esjAX-kHnaYX4cdOAAAE HTTP/1.1" 200 -
+2026-11-09 17:54:58,281 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 17:54:58,625 - INFO - 127.0.0.1 - - [09/Nov/2026 17:54:58] "GET /socket.io/?EIO=4&transport=polling&t=duhvq1l1&sid=esjAX-kHnaYX4cdOAAAE HTTP/1.1" 200 -
+2026-11-09 17:55:02,845 - INFO - 127.0.0.1 - - [09/Nov/2026 17:55:02] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=esjAX-kHnaYX4cdOAAAE HTTP/1.1[0m" 500 -
+2026-11-09 17:55:38,317 - INFO - 127.0.0.1 - - [09/Nov/2026 17:55:38] "OPTIONS /api/password-reset/request HTTP/1.1" 200 -
+2026-11-09 17:55:38,645 - INFO - 127.0.0.1 - - [09/Nov/2026 17:55:38] "[35m[1mPOST /api/password-reset/request HTTP/1.1[0m" 503 -
+2026-11-09 17:56:17,470 - INFO - 127.0.0.1 - - [09/Nov/2026 17:56:17] "OPTIONS /api/password-reset/request HTTP/1.1" 200 -
+2026-11-09 17:56:17,806 - INFO - 127.0.0.1 - - [09/Nov/2026 17:56:17] "[35m[1mPOST /api/password-reset/request HTTP/1.1[0m" 503 -
+2026-11-09 17:57:28,557 - INFO - 127.0.0.1 - - [09/Nov/2026 17:57:28] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 17:57:28,565 - INFO - 127.0.0.1 - - [09/Nov/2026 17:57:28] "[35m[1mPOST /api/password-reset/request HTTP/1.1[0m" 503 -
+2026-11-09 18:00:11,068 - INFO - 127.0.0.1 - - [09/Nov/2026 18:00:11] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 18:00:53,373 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/auth.py', reloading
+2026-11-09 18:00:55,660 - INFO -  * Restarting with stat
+2026-11-09 18:03:20,682 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 18:03:20,698 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.22.197.197:5000
+2026-11-09 18:03:20,698 - INFO - [33mPress CTRL+C to quit[0m
+2026-11-09 18:03:20,698 - INFO -  * Restarting with stat
+2026-11-09 18:03:22,616 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 18:03:22,660 - WARNING -  * Debugger is active!
+2026-11-09 18:03:22,689 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 18:03:22,753 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:22] "GET /socket.io/?EIO=4&transport=polling&t=e5aas86f HTTP/1.1" 200 -
+2026-11-09 18:03:22,877 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:22] "POST /socket.io/?EIO=4&transport=polling&t=e5b77kw7&sid=-aP_CcXKzDnDD69XAAAA HTTP/1.1" 200 -
+2026-11-09 18:03:22,999 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:22] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 18:03:23,006 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:23] "GET /socket.io/?EIO=4&transport=polling&t=e5b28wa6 HTTP/1.1" 200 -
+2026-11-09 18:03:23,195 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:23] "GET /socket.io/?EIO=4&transport=polling&t=e5b7jary&sid=-aP_CcXKzDnDD69XAAAA HTTP/1.1" 200 -
+2026-11-09 18:03:23,272 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:23] "POST /socket.io/?EIO=4&transport=polling&t=e5bbe39t&sid=OWv3xEbcKcPWZMMAAAAC HTTP/1.1" 200 -
+2026-11-09 18:03:23,347 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:23] "GET /socket.io/?EIO=4&transport=polling&t=e5bcip90&sid=OWv3xEbcKcPWZMMAAAAC HTTP/1.1" 200 -
+2026-11-09 18:03:23,441 - INFO - 127.0.0.1 - - [09/Nov/2026 18:03:23] "GET /socket.io/?EIO=4&transport=polling&t=e5bn36s0&sid=OWv3xEbcKcPWZMMAAAAC HTTP/1.1" 200 -
+2026-11-09 19:56:23,029 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:23] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-11-09 19:56:23,638 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:23] "POST /api/login HTTP/1.1" 200 -
+2026-11-09 19:56:23,713 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:23] "GET /socket.io/?EIO=4&transport=polling&t=i6nbp6xt HTTP/1.1" 200 -
+2026-11-09 19:56:24,021 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "GET /socket.io/?EIO=4&transport=polling&t=i6nbtyzk HTTP/1.1" 200 -
+2026-11-09 19:56:24,025 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 19:56:24,031 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 19:56:24,034 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 19:56:24,037 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 19:56:24,435 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "POST /socket.io/?EIO=4&transport=polling&t=i6nkucow&sid=eUDd1pEvt11kCLMbAAAF HTTP/1.1" 200 -
+2026-11-09 19:56:24,441 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 19:56:24,452 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 19:56:24,453 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "GET /socket.io/?EIO=4&transport=polling&t=i6nkzbhd&sid=eUDd1pEvt11kCLMbAAAF HTTP/1.1" 200 -
+2026-11-09 19:56:24,452 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 19:56:24,456 - INFO - 127.0.0.1 - - [09/Nov/2026 19:56:24] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 20:31:28,245 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/models.py', reloading
+2026-11-09 20:31:33,941 - INFO -  * Restarting with stat
+2026-11-09 20:31:42,165 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:31:42,182 - WARNING -  * Debugger is active!
+2026-11-09 20:31:42,228 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:31:42,273 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jfwjtz8m HTTP/1.1" 200 -
+2026-11-09 20:31:42,275 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jfx2zsqj HTTP/1.1" 200 -
+2026-11-09 20:31:42,282 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jfx17w5g HTTP/1.1" 200 -
+2026-11-09 20:31:42,342 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "POST /socket.io/?EIO=4&transport=polling&t=jg22jpzs&sid=IPoiZR9z-56LAeJZAAAC HTTP/1.1" 200 -
+2026-11-09 20:31:42,634 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "POST /socket.io/?EIO=4&transport=polling&t=jg21j0mf&sid=OsSorfBguAebpkwFAAAA HTTP/1.1" 200 -
+2026-11-09 20:31:42,635 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jg21s8p0&sid=OsSorfBguAebpkwFAAAA HTTP/1.1" 200 -
+2026-11-09 20:31:42,664 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "POST /socket.io/?EIO=4&transport=polling&t=jg22fydv&sid=L1FT2rDL2PRD0PrxAAAB HTTP/1.1" 200 -
+2026-11-09 20:31:42,675 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jg22zzv2&sid=IPoiZR9z-56LAeJZAAAC HTTP/1.1" 200 -
+2026-11-09 20:31:42,678 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jg23507r&sid=L1FT2rDL2PRD0PrxAAAB HTTP/1.1" 200 -
+2026-11-09 20:31:42,930 - INFO - 127.0.0.1 - - [09/Nov/2026 20:31:42] "GET /socket.io/?EIO=4&transport=polling&t=jg2cg6mt&sid=IPoiZR9z-56LAeJZAAAC HTTP/1.1" 200 -
+2026-11-09 20:32:12,240 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/services/ml_models.py', reloading
+2026-11-09 20:32:13,464 - INFO -  * Restarting with stat
+2026-11-09 20:32:17,913 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:32:17,949 - WARNING -  * Debugger is active!
+2026-11-09 20:32:17,964 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:32:18,002 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgr147mk HTTP/1.1" 200 -
+2026-11-09 20:32:18,005 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgr18vm0 HTTP/1.1" 200 -
+2026-11-09 20:32:18,013 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgr7mpwh HTTP/1.1" 200 -
+2026-11-09 20:32:18,031 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "POST /socket.io/?EIO=4&transport=polling&t=jgtlv3vg&sid=WAuULgh1nuga6KUBAAAC HTTP/1.1" 200 -
+2026-11-09 20:32:18,055 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "POST /socket.io/?EIO=4&transport=polling&t=jgtmqjad&sid=EVGixLd5XXhcxfQyAAAA HTTP/1.1" 200 -
+2026-11-09 20:32:18,347 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgtm08c9&sid=WAuULgh1nuga6KUBAAAC HTTP/1.1" 200 -
+2026-11-09 20:32:18,378 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "POST /socket.io/?EIO=4&transport=polling&t=jgtmrch0&sid=zxzbE59RtF5x2hmkAAAB HTTP/1.1" 200 -
+2026-11-09 20:32:18,385 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgtmw68l&sid=zxzbE59RtF5x2hmkAAAB HTTP/1.1" 200 -
+2026-11-09 20:32:18,391 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgtmuvtk&sid=EVGixLd5XXhcxfQyAAAA HTTP/1.1" 200 -
+2026-11-09 20:32:18,638 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgtwlyud&sid=EVGixLd5XXhcxfQyAAAA HTTP/1.1" 200 -
+2026-11-09 20:32:18,729 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:18] "GET /socket.io/?EIO=4&transport=polling&t=jgtwo6jv&sid=zxzbE59RtF5x2hmkAAAB HTTP/1.1" 200 -
+2026-11-09 20:32:38,681 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/services/ml_models.py', reloading
+2026-11-09 20:32:39,872 - INFO -  * Restarting with stat
+2026-11-09 20:32:43,250 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:32:43,255 - WARNING -  * Debugger is active!
+2026-11-09 20:32:43,263 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:32:43,314 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhazjw0y HTTP/1.1" 200 -
+2026-11-09 20:32:43,314 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhb3htzt HTTP/1.1" 200 -
+2026-11-09 20:32:43,318 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhb3i1o7 HTTP/1.1" 200 -
+2026-11-09 20:32:43,329 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "POST /socket.io/?EIO=4&transport=polling&t=jhd4qp8k&sid=GlKEJ1J7pF3MZuw1AAAA HTTP/1.1" 200 -
+2026-11-09 20:32:43,336 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "POST /socket.io/?EIO=4&transport=polling&t=jhd4vidx&sid=-eWfYR753W6ws2wiAAAB HTTP/1.1" 200 -
+2026-11-09 20:32:43,644 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhd4rifw&sid=GlKEJ1J7pF3MZuw1AAAA HTTP/1.1" 200 -
+2026-11-09 20:32:43,652 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "POST /socket.io/?EIO=4&transport=polling&t=jhd4u41p&sid=k2SldD0rQPiWPNcPAAAC HTTP/1.1" 200 -
+2026-11-09 20:32:43,658 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhd51r9v&sid=k2SldD0rQPiWPNcPAAAC HTTP/1.1" 200 -
+2026-11-09 20:32:43,660 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhd528s7&sid=-eWfYR753W6ws2wiAAAB HTTP/1.1" 200 -
+2026-11-09 20:32:43,982 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:43] "GET /socket.io/?EIO=4&transport=polling&t=jhddx9zg&sid=GlKEJ1J7pF3MZuw1AAAA HTTP/1.1" 200 -
+2026-11-09 20:32:44,025 - INFO - 127.0.0.1 - - [09/Nov/2026 20:32:44] "GET /socket.io/?EIO=4&transport=polling&t=jhdf9h8c&sid=k2SldD0rQPiWPNcPAAAC HTTP/1.1" 200 -
+2026-11-09 20:33:32,880 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/models.py', reloading
+2026-11-09 20:33:35,307 - INFO -  * Restarting with stat
+2026-11-09 20:33:43,652 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:33:43,663 - WARNING -  * Debugger is active!
+2026-11-09 20:33:43,693 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:33:43,728 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:43] "GET /socket.io/?EIO=4&transport=polling&t=jiibcghk HTTP/1.1" 200 -
+2026-11-09 20:33:43,729 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:43] "GET /socket.io/?EIO=4&transport=polling&t=jii7ruql HTTP/1.1" 200 -
+2026-11-09 20:33:43,730 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:43] "GET /socket.io/?EIO=4&transport=polling&t=jiibkogh HTTP/1.1" 200 -
+2026-11-09 20:33:43,751 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:43] "POST /socket.io/?EIO=4&transport=polling&t=jinqxh4b&sid=E_C01IW2GpLKuPW2AAAA HTTP/1.1" 200 -
+2026-11-09 20:33:43,819 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:43] "POST /socket.io/?EIO=4&transport=polling&t=jinsxjzz&sid=25mFFxLudhWZVXYLAAAB HTTP/1.1" 200 -
+2026-11-09 20:33:44,059 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:44] "GET /socket.io/?EIO=4&transport=polling&t=jinr09tj&sid=E_C01IW2GpLKuPW2AAAA HTTP/1.1" 200 -
+2026-11-09 20:33:44,184 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:44] "POST /socket.io/?EIO=4&transport=polling&t=jinsz9fu&sid=zAFzkRc2en2WFsGcAAAC HTTP/1.1" 200 -
+2026-11-09 20:33:44,241 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:44] "GET /socket.io/?EIO=4&transport=polling&t=jinutz6h&sid=25mFFxLudhWZVXYLAAAB HTTP/1.1" 200 -
+2026-11-09 20:33:44,243 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:44] "GET /socket.io/?EIO=4&transport=polling&t=jinus5l6&sid=zAFzkRc2en2WFsGcAAAC HTTP/1.1" 200 -
+2026-11-09 20:33:48,900 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/soar.py', reloading
+2026-11-09 20:33:50,081 - INFO -  * Restarting with stat
+2026-11-09 20:33:53,512 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:33:53,520 - WARNING -  * Debugger is active!
+2026-11-09 20:33:53,531 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:33:53,576 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "GET /socket.io/?EIO=4&transport=polling&t=jitwn8xl HTTP/1.1" 200 -
+2026-11-09 20:33:53,577 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "GET /socket.io/?EIO=4&transport=polling&t=jitspwv8 HTTP/1.1" 200 -
+2026-11-09 20:33:53,581 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "GET /socket.io/?EIO=4&transport=polling&t=jitwmye0 HTTP/1.1" 200 -
+2026-11-09 20:33:53,597 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "POST /socket.io/?EIO=4&transport=polling&t=jivclsxb&sid=g37s4C1opCj4vMyFAAAA HTTP/1.1" 200 -
+2026-11-09 20:33:53,624 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "POST /socket.io/?EIO=4&transport=polling&t=jivd90p4&sid=61cSmtH6E_9MhlqQAAAB HTTP/1.1" 200 -
+2026-11-09 20:33:53,912 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "GET /socket.io/?EIO=4&transport=polling&t=jivcqsz7&sid=g37s4C1opCj4vMyFAAAA HTTP/1.1" 200 -
+2026-11-09 20:33:53,943 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "POST /socket.io/?EIO=4&transport=polling&t=jivda44x&sid=u2wvm_UFeIeUWXfgAAAC HTTP/1.1" 200 -
+2026-11-09 20:33:53,952 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "GET /socket.io/?EIO=4&transport=polling&t=jivdlc0y&sid=u2wvm_UFeIeUWXfgAAAC HTTP/1.1" 200 -
+2026-11-09 20:33:53,957 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:53] "GET /socket.io/?EIO=4&transport=polling&t=jivdmlau&sid=61cSmtH6E_9MhlqQAAAB HTTP/1.1" 200 -
+2026-11-09 20:33:54,346 - INFO - 127.0.0.1 - - [09/Nov/2026 20:33:54] "GET /socket.io/?EIO=4&transport=polling&t=jivnl8p9&sid=u2wvm_UFeIeUWXfgAAAC HTTP/1.1" 200 -
+2026-11-09 20:33:58,757 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/playbooks.py', reloading
+2026-11-09 20:33:59,912 - INFO -  * Restarting with stat
+2026-11-09 20:34:03,788 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:34:03,794 - WARNING -  * Debugger is active!
+2026-11-09 20:34:03,797 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:34:03,831 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:03] "GET /socket.io/?EIO=4&transport=polling&t=jj0u763v HTTP/1.1" 200 -
+2026-11-09 20:34:03,833 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:03] "GET /socket.io/?EIO=4&transport=polling&t=jj1dtfwa HTTP/1.1" 200 -
+2026-11-09 20:34:03,834 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:03] "GET /socket.io/?EIO=4&transport=polling&t=jj1lw4vq HTTP/1.1" 200 -
+2026-11-09 20:34:03,926 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:03] "POST /socket.io/?EIO=4&transport=polling&t=jj3bhjhr&sid=8DdXq4mmDpY3PNaFAAAC HTTP/1.1" 200 -
+2026-11-09 20:34:04,161 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:04] "POST /socket.io/?EIO=4&transport=polling&t=jj39abun&sid=bsNXytdvCQDb5ILcAAAB HTTP/1.1" 200 -
+2026-11-09 20:34:04,164 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:04] "GET /socket.io/?EIO=4&transport=polling&t=jj39d3ud&sid=bsNXytdvCQDb5ILcAAAB HTTP/1.1" 200 -
+2026-11-09 20:34:04,237 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:04] "POST /socket.io/?EIO=4&transport=polling&t=jj39ee1f&sid=HqrURVXdRLLZkP7RAAAA HTTP/1.1" 200 -
+2026-11-09 20:34:04,245 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:04] "GET /socket.io/?EIO=4&transport=polling&t=jj3bn1mh&sid=HqrURVXdRLLZkP7RAAAA HTTP/1.1" 200 -
+2026-11-09 20:34:04,246 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:04] "GET /socket.io/?EIO=4&transport=polling&t=jj3bouum&sid=8DdXq4mmDpY3PNaFAAAC HTTP/1.1" 200 -
+2026-11-09 20:34:04,519 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:04] "GET /socket.io/?EIO=4&transport=polling&t=jj3kqdln&sid=8DdXq4mmDpY3PNaFAAAC HTTP/1.1" 200 -
+2026-11-09 20:34:17,829 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:17] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=bsNXytdvCQDb5ILcAAAB HTTP/1.1[0m" 500 -
+2026-11-09 20:34:46,095 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/services/ml_models.py', reloading
+2026-11-09 20:34:49,467 - INFO -  * Restarting with stat
+2026-11-09 20:34:54,870 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:34:54,907 - WARNING -  * Debugger is active!
+2026-11-09 20:34:54,936 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:34:54,999 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:54] "GET /socket.io/?EIO=4&transport=polling&t=jk3frt55 HTTP/1.1" 200 -
+2026-11-09 20:34:55,000 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:55] "GET /socket.io/?EIO=4&transport=polling&t=jk3fr70e HTTP/1.1" 200 -
+2026-11-09 20:34:55,040 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:55] "POST /socket.io/?EIO=4&transport=polling&t=jk6r2evs&sid=6du7aU9Jm0jSbv6EAAAB HTTP/1.1" 200 -
+2026-11-09 20:34:55,041 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:55] "POST /socket.io/?EIO=4&transport=polling&t=jk6r8vt8&sid=BYBGz1YDsj6ZFpCgAAAA HTTP/1.1" 200 -
+2026-11-09 20:34:55,368 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:55] "GET /socket.io/?EIO=4&transport=polling&t=jk6ri5ee&sid=6du7aU9Jm0jSbv6EAAAB HTTP/1.1" 200 -
+2026-11-09 20:34:55,375 - INFO - 127.0.0.1 - - [09/Nov/2026 20:34:55] "GET /socket.io/?EIO=4&transport=polling&t=jk6rw3j6&sid=BYBGz1YDsj6ZFpCgAAAA HTTP/1.1" 200 -
+2026-11-09 20:35:43,499 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/tests/test_workflow_safety.py', reloading
+2026-11-09 20:35:46,304 - INFO -  * Restarting with stat
+2026-11-09 20:35:50,515 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:35:50,523 - WARNING -  * Debugger is active!
+2026-11-09 20:35:50,541 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:35:50,578 - INFO - 127.0.0.1 - - [09/Nov/2026 20:35:50] "GET /socket.io/?EIO=4&transport=polling&t=jlbdy4fh HTTP/1.1" 200 -
+2026-11-09 20:35:50,584 - INFO - 127.0.0.1 - - [09/Nov/2026 20:35:50] "GET /socket.io/?EIO=4&transport=polling&t=jlc5ojbo HTTP/1.1" 200 -
+2026-11-09 20:35:50,633 - INFO - 127.0.0.1 - - [09/Nov/2026 20:35:50] "POST /socket.io/?EIO=4&transport=polling&t=jldn2pcd&sid=i879bSC6h_9Pd2tuAAAB HTTP/1.1" 200 -
+2026-11-09 20:35:50,643 - INFO - 127.0.0.1 - - [09/Nov/2026 20:35:50] "POST /socket.io/?EIO=4&transport=polling&t=jldmzzbj&sid=L9az7Xud-nHnJxudAAAA HTTP/1.1" 200 -
+2026-11-09 20:35:50,950 - INFO - 127.0.0.1 - - [09/Nov/2026 20:35:50] "GET /socket.io/?EIO=4&transport=polling&t=jldnti6o&sid=i879bSC6h_9Pd2tuAAAB HTTP/1.1" 200 -
+2026-11-09 20:35:50,953 - INFO - 127.0.0.1 - - [09/Nov/2026 20:35:50] "GET /socket.io/?EIO=4&transport=polling&t=jldnycbn&sid=L9az7Xud-nHnJxudAAAA HTTP/1.1" 200 -
+2026-11-09 20:36:08,140 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/routes/playbooks.py', reloading
+2026-11-09 20:36:09,384 - INFO -  * Restarting with stat
+2026-11-09 20:36:12,350 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:36:12,383 - WARNING -  * Debugger is active!
+2026-11-09 20:36:12,394 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:36:12,515 - INFO - 127.0.0.1 - - [09/Nov/2026 20:36:12] "GET /socket.io/?EIO=4&transport=polling&t=jlt4kak8 HTTP/1.1" 200 -
+2026-11-09 20:36:12,518 - INFO - 127.0.0.1 - - [09/Nov/2026 20:36:12] "GET /socket.io/?EIO=4&transport=polling&t=jlt4mepu HTTP/1.1" 200 -
+2026-11-09 20:36:12,537 - INFO - 127.0.0.1 - - [09/Nov/2026 20:36:12] "POST /socket.io/?EIO=4&transport=polling&t=jlujx1n7&sid=UG_byvcIO0nWQ1YlAAAB HTTP/1.1" 200 -
+2026-11-09 20:36:12,542 - INFO - 127.0.0.1 - - [09/Nov/2026 20:36:12] "POST /socket.io/?EIO=4&transport=polling&t=jluk3yxn&sid=xV18FpqP0bRgvbw4AAAA HTTP/1.1" 200 -
+2026-11-09 20:36:12,843 - INFO - 127.0.0.1 - - [09/Nov/2026 20:36:12] "GET /socket.io/?EIO=4&transport=polling&t=jlujz9rt&sid=UG_byvcIO0nWQ1YlAAAB HTTP/1.1" 200 -
+2026-11-09 20:36:12,847 - INFO - 127.0.0.1 - - [09/Nov/2026 20:36:12] "GET /socket.io/?EIO=4&transport=polling&t=jluk943b&sid=xV18FpqP0bRgvbw4AAAA HTTP/1.1" 200 -
+2026-11-09 20:40:39,088 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /socket.io/?EIO=4&transport=polling&t=jrjv3n9y HTTP/1.1" 200 -
+2026-11-09 20:40:39,153 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:40:39,154 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 20:40:39,156 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 20:40:39,158 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 20:40:39,473 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:40:39,530 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 20:40:39,563 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 20:40:39,570 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "POST /socket.io/?EIO=4&transport=polling&t=jrkakn40&sid=gtOKBMMajJ94G9U6AAAE HTTP/1.1" 200 -
+2026-11-09 20:40:39,571 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /socket.io/?EIO=4&transport=polling&t=jrkal623&sid=gtOKBMMajJ94G9U6AAAE HTTP/1.1" 200 -
+2026-11-09 20:40:39,577 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 20:40:39,903 - INFO - 127.0.0.1 - - [09/Nov/2026 20:40:39] "GET /socket.io/?EIO=4&transport=polling&t=jrkmg4mb&sid=gtOKBMMajJ94G9U6AAAE HTTP/1.1" 200 -
+2026-11-09 20:42:42,220 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/services/ml_evaluation.py', reloading
+2026-11-09 20:42:45,590 - INFO -  * Restarting with stat
+2026-11-09 20:42:51,187 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:42:51,198 - WARNING -  * Debugger is active!
+2026-11-09 20:42:51,222 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:42:51,268 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:42:51,270 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /socket.io/?EIO=4&transport=polling&t=ju8lraro HTTP/1.1" 200 -
+2026-11-09 20:42:51,272 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 20:42:51,276 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 20:42:51,278 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 20:42:51,282 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /socket.io/?EIO=4&transport=polling&t=juar7ga8 HTTP/1.1" 200 -
+2026-11-09 20:42:51,284 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /socket.io/?EIO=4&transport=polling&t=jubk2deo HTTP/1.1" 200 -
+2026-11-09 20:42:51,362 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "POST /socket.io/?EIO=4&transport=polling&t=jueaane6&sid=D2sX7BsLrJmmkgAZAAAC HTTP/1.1" 200 -
+2026-11-09 20:42:51,602 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:42:51,613 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 20:42:51,628 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 20:42:51,630 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "POST /socket.io/?EIO=4&transport=polling&t=jue8fa6d&sid=8NNXsavmjRBNuiSKAAAA HTTP/1.1" 200 -
+2026-11-09 20:42:51,631 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /socket.io/?EIO=4&transport=polling&t=jue8hseb&sid=8NNXsavmjRBNuiSKAAAA HTTP/1.1" 200 -
+2026-11-09 20:42:51,632 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 20:42:51,737 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /socket.io/?EIO=4&transport=polling&t=juebtjnb&sid=D2sX7BsLrJmmkgAZAAAC HTTP/1.1" 200 -
+2026-11-09 20:42:51,919 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "POST /socket.io/?EIO=4&transport=polling&t=juece7x5&sid=uJatjkavVLHHIKVGAAAB HTTP/1.1" 200 -
+2026-11-09 20:42:51,978 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:51] "GET /socket.io/?EIO=4&transport=polling&t=jueixn5z&sid=8NNXsavmjRBNuiSKAAAA HTTP/1.1" 200 -
+2026-11-09 20:42:52,047 - INFO - 127.0.0.1 - - [09/Nov/2026 20:42:52] "GET /socket.io/?EIO=4&transport=polling&t=juefqg32&sid=uJatjkavVLHHIKVGAAAB HTTP/1.1" 200 -
+2026-11-09 20:43:51,234 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "OPTIONS /api/audit-logs?limit=20 HTTP/1.1" 200 -
+2026-11-09 20:43:51,244 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "OPTIONS /api/operations/health HTTP/1.1" 200 -
+2026-11-09 20:43:51,239 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "OPTIONS /api/soar/executions HTTP/1.1" 200 -
+2026-11-09 20:43:51,230 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "OPTIONS /api/rules HTTP/1.1" 200 -
+2026-11-09 20:43:51,249 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "OPTIONS /api/security-policy HTTP/1.1" 200 -
+2026-11-09 20:43:51,254 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "OPTIONS /api/ml/evaluation HTTP/1.1" 200 -
+2026-11-09 20:43:51,841 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "GET /api/soar/executions HTTP/1.1" 200 -
+2026-11-09 20:43:51,871 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "GET /api/rules HTTP/1.1" 200 -
+2026-11-09 20:43:51,922 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "GET /api/security-policy HTTP/1.1" 200 -
+2026-11-09 20:43:51,941 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "GET /api/audit-logs?limit=20 HTTP/1.1" 200 -
+2026-11-09 20:43:51,946 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:51] "GET /api/operations/health HTTP/1.1" 200 -
+2026-11-09 20:43:52,744 - INFO - 127.0.0.1 - - [09/Nov/2026 20:43:52] "GET /api/ml/evaluation HTTP/1.1" 200 -
+2026-11-09 20:44:21,663 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/tests/test_workflow_safety.py', reloading
+2026-11-09 20:44:25,227 - INFO -  * Restarting with stat
+2026-11-09 20:44:29,816 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-09 20:44:29,821 - WARNING -  * Debugger is active!
+2026-11-09 20:44:29,834 - INFO -  * Debugger PIN: 579-200-640
+2026-11-09 20:44:29,867 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:29] "GET /socket.io/?EIO=4&transport=polling&t=jwfv8uql HTTP/1.1" 200 -
+2026-11-09 20:44:29,868 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:29] "GET /socket.io/?EIO=4&transport=polling&t=jwfenv2u HTTP/1.1" 200 -
+2026-11-09 20:44:29,899 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:29] "GET /socket.io/?EIO=4&transport=polling&t=jwfwas1x HTTP/1.1" 200 -
+2026-11-09 20:44:30,018 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "POST /socket.io/?EIO=4&transport=polling&t=jwietmjx&sid=a2oiKV-0P6jZZFw_AAAC HTTP/1.1" 200 -
+2026-11-09 20:44:30,221 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "POST /socket.io/?EIO=4&transport=polling&t=jwib5a5w&sid=OXCa0m0lbzYouUjCAAAB HTTP/1.1" 200 -
+2026-11-09 20:44:30,223 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "GET /socket.io/?EIO=4&transport=polling&t=jwib7wqg&sid=OXCa0m0lbzYouUjCAAAB HTTP/1.1" 200 -
+2026-11-09 20:44:30,383 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "POST /socket.io/?EIO=4&transport=polling&t=jwievo71&sid=hd5nEaDuu15v2ZsMAAAA HTTP/1.1" 200 -
+2026-11-09 20:44:30,392 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "GET /socket.io/?EIO=4&transport=polling&t=jwiffkf3&sid=a2oiKV-0P6jZZFw_AAAC HTTP/1.1" 200 -
+2026-11-09 20:44:30,392 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "GET /socket.io/?EIO=4&transport=polling&t=jwifn4ha&sid=hd5nEaDuu15v2ZsMAAAA HTTP/1.1" 200 -
+2026-11-09 20:44:30,613 - INFO - 127.0.0.1 - - [09/Nov/2026 20:44:30] "GET /socket.io/?EIO=4&transport=polling&t=jwiq4ov4&sid=a2oiKV-0P6jZZFw_AAAC HTTP/1.1" 200 -
+2026-11-09 20:45:00,236 - INFO - 127.0.0.1 - - [09/Nov/2026 20:45:00] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 20:45:36,917 - INFO - 127.0.0.1 - - [09/Nov/2026 20:45:36] "OPTIONS /api/scan HTTP/1.1" 200 -
+2026-11-09 20:45:37,574 - INFO - 127.0.0.1 - - [09/Nov/2026 20:45:37] "[35m[1mPOST /api/scan HTTP/1.1[0m" 500 -
+2026-11-09 20:45:45,373 - INFO - 127.0.0.1 - - [09/Nov/2026 20:45:45] "OPTIONS /api/scan HTTP/1.1" 200 -
+2026-11-09 20:45:45,875 - INFO - 127.0.0.1 - - [09/Nov/2026 20:45:45] "[35m[1mPOST /api/scan HTTP/1.1[0m" 500 -
+2026-11-09 20:46:05,954 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:05] "GET /socket.io/?EIO=4&transport=polling&t=jykft3hi HTTP/1.1" 200 -
+2026-11-09 20:46:06,267 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:46:06,270 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 20:46:06,268 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "GET /socket.io/?EIO=4&transport=polling&t=jykg05w2 HTTP/1.1" 200 -
+2026-11-09 20:46:06,275 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 20:46:06,279 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 20:46:06,742 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 20:46:06,744 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 20:46:06,746 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 20:46:06,750 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:46:06,794 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "GET /socket.io/?EIO=4&transport=polling&t=jyku4yra&sid=ybfkD7zrvDLLmr23AAAH HTTP/1.1" 200 -
+2026-11-09 20:46:06,797 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:06] "POST /socket.io/?EIO=4&transport=polling&t=jyku28uq&sid=ybfkD7zrvDLLmr23AAAH HTTP/1.1" 200 -
+2026-11-09 20:46:07,127 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:07] "GET /socket.io/?EIO=4&transport=polling&t=jyl3twy2&sid=ybfkD7zrvDLLmr23AAAH HTTP/1.1" 200 -
+2026-11-09 20:46:10,317 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:10] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=ybfkD7zrvDLLmr23AAAH HTTP/1.1[0m" 500 -
+2026-11-09 20:46:12,843 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:12] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=hd5nEaDuu15v2ZsMAAAA HTTP/1.1[0m" 500 -
+2026-11-09 20:46:15,171 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:15] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=a2oiKV-0P6jZZFw_AAAC HTTP/1.1[0m" 500 -
+2026-11-09 20:46:20,231 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:20] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 20:46:22,069 - INFO - 127.0.0.1 - - [09/Nov/2026 20:46:22] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 20:49:35,271 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:35] "GET /api/status HTTP/1.1" 200 -
+2026-11-09 20:49:40,328 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "[35m[1mGET /socket.io/?EIO=4&transport=websocket&sid=OXCa0m0lbzYouUjCAAAB HTTP/1.1[0m" 500 -
+2026-11-09 20:49:40,843 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "GET /socket.io/?EIO=4&transport=polling&t=k35zgptr HTTP/1.1" 200 -
+2026-11-09 20:49:40,844 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "GET /socket.io/?EIO=4&transport=polling&t=k35zd6bg HTTP/1.1" 200 -
+2026-11-09 20:49:40,871 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-09 20:49:40,879 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:49:40,884 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-09 20:49:40,893 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:40] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-09 20:49:41,316 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "GET /api/threats HTTP/1.1" 200 -
+2026-11-09 20:49:41,327 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-09 20:49:41,344 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "POST /socket.io/?EIO=4&transport=polling&t=k36dkjk8&sid=Yk0zqUCeSgjnDVvnAAAJ HTTP/1.1" 200 -
+2026-11-09 20:49:41,345 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "GET /socket.io/?EIO=4&transport=polling&t=k36doqnz&sid=Yk0zqUCeSgjnDVvnAAAJ HTTP/1.1" 200 -
+2026-11-09 20:49:41,346 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "GET /api/stats HTTP/1.1" 200 -
+2026-11-09 20:49:41,360 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "GET /api/users HTTP/1.1" 200 -
+2026-11-09 20:49:41,700 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:41] "GET /socket.io/?EIO=4&transport=polling&t=k36o2mo7&sid=Yk0zqUCeSgjnDVvnAAAJ HTTP/1.1" 200 -
+2026-11-09 20:49:59,997 - INFO - 127.0.0.1 - - [09/Nov/2026 20:49:59] "OPTIONS /api/audit-logs?limit=20 HTTP/1.1" 200 -
+2026-11-09 20:50:00,323 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "OPTIONS /api/rules HTTP/1.1" 200 -
+2026-11-09 20:50:00,326 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "OPTIONS /api/operations/health HTTP/1.1" 200 -
+2026-11-09 20:50:00,329 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "OPTIONS /api/soar/executions HTTP/1.1" 200 -
+2026-11-09 20:50:00,333 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "OPTIONS /api/ml/evaluation HTTP/1.1" 200 -
+2026-11-09 20:50:00,343 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "OPTIONS /api/security-policy HTTP/1.1" 200 -
+2026-11-09 20:50:00,380 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "GET /api/audit-logs?limit=20 HTTP/1.1" 200 -
+2026-11-09 20:50:00,680 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "GET /api/rules HTTP/1.1" 200 -
+2026-11-09 20:50:00,766 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "GET /api/soar/executions HTTP/1.1" 200 -
+2026-11-09 20:50:00,842 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "GET /api/security-policy HTTP/1.1" 200 -
+2026-11-09 20:50:00,851 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:00] "GET /api/operations/health HTTP/1.1" 200 -
+2026-11-09 20:50:02,162 - INFO - 127.0.0.1 - - [09/Nov/2026 20:50:02] "GET /api/ml/evaluation HTTP/1.1" 200 -
+2026-11-10 08:11:16,262 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
