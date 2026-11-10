@@ -31,7 +31,6 @@ services:
   - type: web
     name: soar-siem-frontend
     runtime: static
-    plan: free
     rootDir: frontend/soc-dashboard-frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
