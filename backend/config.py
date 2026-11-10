@@ -7,8 +7,10 @@ class Config:
     # Database — uses PostgreSQL in production, SQLite for local dev
     DATABASE_URL = os.getenv('DATABASE_URL')
     if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
-        # Render provides postgres://, SQLAlchemy needs postgresql://
-        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+        # Render provides postgres://; select the installed psycopg v3 driver.
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql+psycopg://', 1)
+    elif DATABASE_URL and DATABASE_URL.startswith('postgresql://'):
+        DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg://', 1)
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or ('sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}

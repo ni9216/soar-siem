@@ -2,6 +2,7 @@ flask
 flask-cors
 gunicorn
 flask-sqlalchemy
+psycopg[binary]
 flask-socketio
 flask-jwt-extended
 flask-limiter
