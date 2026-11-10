@@ -326,3 +326,18 @@
 2026-11-10 20:09:14,421 - INFO - 127.0.0.1 - - [10/Nov/2026 20:09:14] "POST /socket.io/?EIO=4&transport=polling&t=y30jg06f&sid=VPeS2qJkeRoIdg-WAAAO HTTP/1.1" 200 -
 2026-11-10 20:09:14,563 - INFO - 127.0.0.1 - - [10/Nov/2026 20:09:14] "GET /socket.io/?EIO=4&transport=polling&t=y30lpyee&sid=VPeS2qJkeRoIdg-WAAAO HTTP/1.1" 200 -
 2026-11-10 20:09:14,629 - INFO - 127.0.0.1 - - [10/Nov/2026 20:09:14] "GET /socket.io/?EIO=4&transport=polling&t=y30syygs&sid=VPeS2qJkeRoIdg-WAAAO HTTP/1.1" 200 -
+2026-11-10 21:30:59,017 - INFO -  * Detected change in '/home/liech/myfolder/soar-siem/backend/app.py', reloading
+2026-11-10 21:31:04,187 - INFO -  * Restarting with stat
+2026-11-10 21:31:08,127 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-11-10 21:31:08,132 - WARNING -  * Debugger is active!
+2026-11-10 21:31:08,144 - INFO -  * Debugger PIN: 579-200-640
+2026-11-10 21:31:08,166 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10ad6b0i HTTP/1.1" 200 -
+2026-11-10 21:31:08,168 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10ad6i47 HTTP/1.1" 200 -
+2026-11-10 21:31:08,169 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10ad45ok HTTP/1.1" 200 -
+2026-11-10 21:31:08,227 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "POST /socket.io/?EIO=4&transport=polling&t=10c6mdkq&sid=WMbEFWM3PEOXkXHeAAAC HTTP/1.1" 200 -
+2026-11-10 21:31:08,230 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "POST /socket.io/?EIO=4&transport=polling&t=10c6h052&sid=atPYhuHwy5fxucaAAAAA HTTP/1.1" 200 -
+2026-11-10 21:31:08,265 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10c7g6a6&sid=atPYhuHwy5fxucaAAAAA HTTP/1.1" 200 -
+2026-11-10 21:31:08,285 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10c8j96l&sid=atPYhuHwy5fxucaAAAAA HTTP/1.1" 200 -
+2026-11-10 21:31:08,538 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "POST /socket.io/?EIO=4&transport=polling&t=10c6llat&sid=HatfEkEPP36Rh3rlAAAB HTTP/1.1" 200 -
+2026-11-10 21:31:08,586 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10c7rksf&sid=WMbEFWM3PEOXkXHeAAAC HTTP/1.1" 200 -
+2026-11-10 21:31:08,588 - INFO - 127.0.0.1 - - [10/Nov/2026 21:31:08] "GET /socket.io/?EIO=4&transport=polling&t=10c87jns&sid=HatfEkEPP36Rh3rlAAAB HTTP/1.1" 200 -

@@ -205,6 +205,9 @@ app.register_blueprint(ingestion_bp, url_prefix="/api")
 def migrate_alert_group_schema():
     with app.app_context():
         try:
+            from sqlalchemy import inspect
+            if not inspect(db.engine).has_table('alert_group'):
+                return
             with db.engine.connect() as conn:
                 if conn.dialect.name == 'sqlite':
                     columns = {

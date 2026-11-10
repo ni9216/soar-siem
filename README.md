@@ -82,6 +82,26 @@ external integrations.
 
 ## 🚀 Quick Start
 
+## Deploy the full app on Render
+
+The repository includes a Render Blueprint in `render.yaml` for the Flask API, static dashboard,
+and PostgreSQL database. To deploy:
+
+1. Push the repository to GitHub.
+2. In Render, choose **New → Blueprint**, connect `ni9216/soar-siem`, and select the branch to deploy.
+3. Review the three services and confirm the free plans.
+4. When prompted, enter a strong, unique value for `DEFAULT_ADMIN_PASSWORD`. Render generates the
+   Flask and JWT secret keys; do not copy local `.env` values into the deployment.
+5. After deployment, open `https://soar-siem-frontend.onrender.com` and sign in with username
+   `admin` and the password you entered in Render.
+6. Check `https://soar-siem-backend.onrender.com/api/status` returns status `OK`.
+
+This is a free demo configuration, not persistent production hosting. The free PostgreSQL database
+is temporary and may expire; the free backend can also sleep when idle. Export anything you need
+and move to a paid persistent database/hosting plan before relying on it for real data. If you
+change the Render service names or add a custom frontend domain, update `VITE_API_URL` and
+`ALLOWED_ORIGINS` in the backend/frontend service settings to match, then redeploy.
+
 ### Prerequisites
 - Docker & Docker Compose
 - 4GB RAM minimum
