@@ -1,10 +1,11 @@
 import json
+import os
 import re
-import shutil
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from flask import Blueprint, Response, current_app, jsonify, request
+from flask import Blueprint, Response, current_app, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import text
 
@@ -17,6 +18,7 @@ from models import (
     Incident,
     LogSource,
     PlaybookExecution,
+    SecurityEvent,
     SecuritySetting,
     Tenant,
     User,
@@ -114,6 +116,34 @@ def assign_alert_group(group_id):
     db.session.commit()
     record_audit(_actor(), 'alert_group.assigned', f'alert-group/{group.id}', details={'assigned_to': user_id})
     return jsonify(group.to_dict())
+
+
+@enterprise_bp.route('/alert-deduplication', methods=['GET'])
+@jwt_required()
+@role_required('admin')
+def get_alert_deduplication():
+    setting = SecuritySetting.query.get('alert_dedup_window_minutes')
+    try:
+        window_minutes = int(setting.value) if setting else 5
+    except ValueError:
+        current_app.logger.error("Invalid alert_dedup_window_minutes setting")
+        window_minutes = 5
+    return jsonify({'window_minutes': window_minutes})
+
+
+@enterprise_bp.route('/alert-deduplication', methods=['PUT'])
+@jwt_required()
+@role_required('admin')
+def update_alert_deduplication():
+    data = request.get_json(silent=True)
+    window_minutes = data.get('window_minutes') if isinstance(data, dict) else None
+    if isinstance(window_minutes, bool) or not isinstance(window_minutes, int) or not 0 <= window_minutes <= 1440:
+        return jsonify({'error': 'window_minutes must be an integer between 0 and 1440'}), 400
+    _set_setting('alert_dedup_window_minutes', window_minutes)
+    record_audit(_actor(), 'alert_deduplication.updated', 'alert-deduplication', details={
+        'window_minutes': window_minutes,
+    })
+    return jsonify({'window_minutes': window_minutes})
 
 
 @enterprise_bp.route('/assets/<int:asset_id>/log-sources', methods=['GET'])
@@ -484,16 +514,35 @@ def create_tenant():
 def operations_health():
     try:
         db.session.execute(text('SELECT 1'))
-        database = 'healthy'
+        ingestion = {
+            'queued': SecurityEvent.query.filter_by(status='queued').count(),
+            'processing': SecurityEvent.query.filter_by(status='processing').count(),
+            'failed': SecurityEvent.query.filter_by(status='failed').count(),
+        }
+        backup_directory = _sqlite_backup_directory()
+        backup_storage = (
+            'available'
+            if backup_directory and backup_directory.parent.exists() and os.access(backup_directory.parent, os.W_OK)
+            else 'not_configured' if backup_directory is None else 'unavailable'
+        )
+        return jsonify({
+            'status': 'healthy' if ingestion['failed'] == 0 else 'degraded',
+            'database': 'healthy',
+            'ingestion': ingestion,
+            'backup_storage': backup_storage,
+            'incidents': Incident.query.count(),
+            'cases': Case.query.count(),
+            'timestamp': datetime.utcnow().isoformat(),
+        })
     except Exception:
-        database = 'unhealthy'
-    return jsonify({
-        'status': 'healthy' if database == 'healthy' else 'degraded',
-        'database': database,
-        'incidents': Incident.query.count() if database == 'healthy' else None,
-        'cases': Case.query.count() if database == 'healthy' else None,
-        'timestamp': datetime.utcnow().isoformat(),
-    })
+        db.session.rollback()
+        current_app.logger.exception("Operations health check failed")
+        return jsonify({
+            'status': 'unhealthy',
+            'database': 'unhealthy',
+            'error': 'Database health check failed',
+            'timestamp': datetime.utcnow().isoformat(),
+        }), 503
 
 
 @enterprise_bp.route('/operations/metrics', methods=['GET'])
@@ -515,15 +564,94 @@ def operations_metrics():
 @jwt_required()
 @role_required('admin')
 def create_backup():
-    database_uri = current_app.config['SQLALCHEMY_DATABASE_URI']
-    if not database_uri.startswith('sqlite:///'):
+    backup_directory = _sqlite_backup_directory()
+    if backup_directory is None:
         return jsonify({'error': 'Configure managed database backups for non-SQLite deployments'}), 501
-    database_path = Path(database_uri.removeprefix('sqlite:///'))
+    database_path = _sqlite_database_path()
+    if database_path is None:
+        return jsonify({'error': 'A file-backed SQLite database is required for local backups'}), 501
     if not database_path.exists():
         return jsonify({'error': 'Database file not found'}), 404
-    backup_dir = database_path.parent / 'backups'
-    backup_dir.mkdir(mode=0o700, exist_ok=True)
-    backup_path = backup_dir / f"{database_path.stem}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.sqlite"
-    shutil.copy2(database_path, backup_path)
+    try:
+        backup_path = create_sqlite_backup(database_path, backup_directory)
+    except Exception:
+        current_app.logger.exception("Database backup failed")
+        return jsonify({'error': 'Database backup failed'}), 500
     record_audit(_actor(), 'database.backup_created', 'admin/backup', details={'filename': backup_path.name})
     return jsonify({'message': 'Backup created', 'filename': backup_path.name}), 201
+
+
+def create_sqlite_backup(database_path, backup_directory):
+    backup_directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.chmod(backup_directory, 0o700)
+    backup_path = backup_directory / f"{database_path.stem}-{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}.sqlite"
+    temporary_path = backup_path.with_suffix('.sqlite.tmp')
+    try:
+        with sqlite3.connect(str(database_path), timeout=30) as source:
+            with sqlite3.connect(str(temporary_path), timeout=30) as destination:
+                os.chmod(temporary_path, 0o600)
+                source.backup(destination)
+        os.chmod(temporary_path, 0o600)
+        os.replace(temporary_path, backup_path)
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        raise
+    return backup_path
+
+
+@enterprise_bp.route('/admin/backups', methods=['GET'])
+@jwt_required()
+@role_required('admin')
+def list_backups():
+    backup_directory = _sqlite_backup_directory()
+    database_path = _sqlite_database_path()
+    if backup_directory is None or database_path is None:
+        return jsonify({'error': 'Configure managed database backups for non-SQLite deployments'}), 501
+    if not backup_directory.exists():
+        return jsonify([])
+
+    pattern = re.compile(rf'^{re.escape(database_path.stem)}-\d{{20}}\.sqlite$')
+    backups = []
+    for path in sorted(backup_directory.iterdir(), reverse=True):
+        if not pattern.fullmatch(path.name) or path.is_symlink() or not path.is_file():
+            continue
+        stat = path.stat()
+        backups.append({
+            'filename': path.name,
+            'size_bytes': stat.st_size,
+            'created_at': datetime.utcfromtimestamp(stat.st_mtime).isoformat(),
+        })
+    return jsonify(backups)
+
+
+@enterprise_bp.route('/admin/backups/<path:filename>', methods=['GET'])
+@jwt_required()
+@role_required('admin')
+def download_backup(filename):
+    backup_directory = _sqlite_backup_directory()
+    database_path = _sqlite_database_path()
+    if backup_directory is None or database_path is None:
+        return jsonify({'error': 'Configure managed database backups for non-SQLite deployments'}), 501
+    if not re.fullmatch(rf'{re.escape(database_path.stem)}-\d{{20}}\.sqlite', filename):
+        return jsonify({'error': 'Backup not found'}), 404
+    backup_path = backup_directory / filename
+    if backup_path.is_symlink() or not backup_path.is_file():
+        return jsonify({'error': 'Backup not found'}), 404
+    record_audit(_actor(), 'database.backup_downloaded', 'admin/backup', details={'filename': filename})
+    return send_file(backup_path, as_attachment=True, download_name=filename)
+
+
+def _sqlite_database_path():
+    from sqlalchemy.engine.url import make_url
+
+    database_url = make_url(current_app.config['SQLALCHEMY_DATABASE_URI'])
+    if database_url.drivername.split('+')[0] != 'sqlite' or not database_url.database:
+        return None
+    if database_url.database == ':memory:':
+        return None
+    return Path(database_url.database).expanduser().resolve()
+
+
+def _sqlite_backup_directory():
+    database_path = _sqlite_database_path()
+    return database_path.parent / 'backups' if database_path else None

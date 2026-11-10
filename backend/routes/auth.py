@@ -113,6 +113,7 @@ def register():
         print(f"User creation error: {e}")  # Log for debugging
         return jsonify({"error": "Failed to create user"}), 500
 
+    record_audit(current_user, 'user.created', f'user/{new_user.id}', details={'username': username, 'role': role})
     return jsonify({"message": "User created"}), 201
 
 
@@ -145,6 +146,7 @@ def get_users():
 @role_required('admin')
 def update_user(user_id):
     user = User.query.get_or_404(user_id)
+    previous_username = user.username
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({"error": "Request body required"}), 400
@@ -170,6 +172,12 @@ def update_user(user_id):
         user.role = role
 
     db.session.commit()
+    record_audit(
+        get_jwt_identity(),
+        'user.updated',
+        f'user/{user.id}',
+        details={'previous_username': previous_username, 'username': user.username, 'role': user.role},
+    )
 
     return jsonify({
         "id": user.id,
@@ -186,6 +194,8 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     if user.id == current_user.id:
         return jsonify({"error": "Cannot delete your own account"}), 400
+    username = user.username
     db.session.delete(user)
     db.session.commit()
+    record_audit(get_jwt_identity(), 'user.deleted', f'user/{user_id}', details={'username': username})
     return jsonify({"message": "User deleted"}), 200

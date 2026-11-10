@@ -4,6 +4,7 @@ from models import Incident, User, db
 from sqlalchemy import func
 from datetime import datetime, timedelta
 from routes.auth import role_required
+from services.audit import record_audit
 from services.incident_workflow import append_incident_timeline
 
 incidents_bp = Blueprint("incidents", __name__)
@@ -75,6 +76,16 @@ def update_incident(incident_id):
         incident.notes = data['notes']
 
     db.session.commit()
+    if 'status' in data or 'notes' in data:
+        record_audit(
+            get_jwt_identity(),
+            'incident.updated',
+            f'incident/{incident.id}',
+            details={
+                **({'status': data['status']} if 'status' in data else {}),
+                **({'notes_updated': True} if 'notes' in data else {}),
+            },
+        )
 
     from app import socketio
     socketio.emit('incident_update', incident.to_dict())
@@ -111,6 +122,12 @@ def assign_incident(incident_id):
         )
 
     db.session.commit()
+    record_audit(
+        get_jwt_identity(),
+        'incident.assigned',
+        f'incident/{incident.id}',
+        details={'assigned_to': assigned_to},
+    )
 
     from app import socketio
     socketio.emit('incident_update', incident.to_dict())

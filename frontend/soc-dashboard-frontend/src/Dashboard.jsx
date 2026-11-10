@@ -67,6 +67,14 @@ export default function Dashboard({ auth, onLogout }) {
   const [mlEvaluation, setMlEvaluation] = useState(null);
   const [operationsHealth, setOperationsHealth] = useState(null);
   const [securityPolicy, setSecurityPolicy] = useState({ require_admin_mfa: false });
+  const [dedupWindowMinutes, setDedupWindowMinutes] = useState(5);
+  const [alertGroups, setAlertGroups] = useState([]);
+  const [logSources, setLogSources] = useState([]);
+  const [newSysmonSourceName, setNewSysmonSourceName] = useState("");
+  const [newSysmonApiKey, setNewSysmonApiKey] = useState("");
+  const [backups, setBackups] = useState([]);
+  const [auditActorFilter, setAuditActorFilter] = useState("");
+  const [auditActionFilter, setAuditActionFilter] = useState("");
   const [enterpriseMessage, setEnterpriseMessage] = useState("");
   const [newRule, setNewRule] = useState({ name: "", pattern: "", severity: "Medium", mitre_attack_id: "" });
   const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
@@ -125,7 +133,17 @@ export default function Dashboard({ auth, onLogout }) {
   };
 
   const loadEnterprise = async () => {
-    const endpoints = ["/api/audit-logs?limit=20", "/api/rules", "/api/soar/executions", "/api/operations/health", "/api/security-policy", "/api/ml/evaluation"];
+    const auditQuery = new URLSearchParams({ limit: "50" });
+    if (auditActorFilter.trim()) auditQuery.set("actor", auditActorFilter.trim());
+    if (auditActionFilter.trim()) auditQuery.set("action", auditActionFilter.trim());
+    const endpoints = [
+      `/api/audit-logs?${auditQuery}`,
+      "/api/rules",
+      "/api/soar/executions",
+      "/api/operations/health",
+      "/api/security-policy",
+      "/api/ml/evaluation",
+    ];
     try {
       const responses = await Promise.all(endpoints.map((endpoint) => fetchWithAuth(endpoint)));
       if (responses.some((response) => !response || !response.ok)) {
@@ -139,10 +157,133 @@ export default function Dashboard({ auth, onLogout }) {
       setOperationsHealth(health);
       setSecurityPolicy(policy);
       setMlEvaluation(evaluation);
+      const optionalResponses = await Promise.all([
+        fetchWithAuth("/api/alert-deduplication"),
+        fetchWithAuth("/api/alert-groups"),
+        fetchWithAuth("/api/ingestion/sources"),
+        fetchWithAuth("/api/admin/backups"),
+      ]);
+      if (optionalResponses[0]?.ok) {
+        setDedupWindowMinutes((await optionalResponses[0].json()).window_minutes);
+      }
+      if (optionalResponses[1]?.ok) setAlertGroups(await optionalResponses[1].json());
+      if (optionalResponses[2]?.ok) setLogSources(await optionalResponses[2].json());
+      if (optionalResponses[3]?.ok) setBackups(await optionalResponses[3].json());
       setEnterpriseMessage("");
     } catch {
       setEnterpriseMessage("Unable to connect to enterprise controls.");
     }
+  };
+
+  const createSysmonSource = async () => {
+    if (!newSysmonSourceName.trim()) {
+      setEnterpriseMessage("Enter a name for the Sysmon source.");
+      return;
+    }
+    const response = await fetchWithAuth("/api/ingestion/sources", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newSysmonSourceName.trim(), source_type: "windows_event" }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    if (!response.ok) {
+      setEnterpriseMessage(data.error || "Unable to create Sysmon source.");
+      return;
+    }
+    setLogSources((current) => [...current.filter((source) => source.id !== data.id), data]);
+    setNewSysmonSourceName("");
+    setNewSysmonApiKey(data.api_key);
+    setEnterpriseMessage("Sysmon source created. Copy its API key now; it will not be shown again.");
+  };
+
+  const rotateSysmonKey = async (sourceId) => {
+    const response = await fetchWithAuth(`/api/ingestion/sources/${sourceId}/rotate-key`, { method: "POST" });
+    if (!response) return;
+    const data = await response.json();
+    if (!response.ok) {
+      setEnterpriseMessage(data.error || "Unable to rotate Sysmon API key.");
+      return;
+    }
+    setNewSysmonApiKey(data.api_key);
+    setEnterpriseMessage("Sysmon key rotated. Copy the new key now; the previous key is no longer valid.");
+  };
+
+  const saveDedupWindow = async () => {
+    const windowMinutes = Number(dedupWindowMinutes);
+    if (!Number.isInteger(windowMinutes) || windowMinutes < 0 || windowMinutes > 1440) {
+      setEnterpriseMessage("Deduplication window must be a whole number between 0 and 1440.");
+      return;
+    }
+    const response = await fetchWithAuth("/api/alert-deduplication", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ window_minutes: windowMinutes }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    setEnterpriseMessage(response.ok ? "Alert deduplication settings saved." : data.error || "Unable to save deduplication settings.");
+  };
+
+  const toggleDetectionRule = async (rule) => {
+    const response = await fetchWithAuth(`/api/rules/${rule.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: !rule.enabled }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    if (response.ok) {
+      setDetectionRules((current) => current.map((item) => item.id === data.id ? data : item));
+      setEnterpriseMessage(`Rule ${data.enabled ? "enabled" : "disabled"}.`);
+    } else {
+      setEnterpriseMessage(data.error || "Unable to update detection rule.");
+    }
+  };
+
+  const testDetectionRule = async (rule) => {
+    const sample = window.prompt("Enter a sample log to test against this rule:");
+    if (!sample) return;
+    const response = await fetchWithAuth(`/api/rules/${rule.id}/test`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ log: sample }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    setEnterpriseMessage(response.ok
+      ? `Rule ${rule.name}: ${data.matched ? `matched (${data.severity})` : "no match"}.`
+      : data.error || "Unable to test detection rule.");
+  };
+
+  const createDatabaseBackup = async () => {
+    const response = await fetchWithAuth("/api/admin/backups", { method: "POST" });
+    if (!response) return;
+    const data = await response.json();
+    if (!response.ok) {
+      setEnterpriseMessage(data.error || "Unable to create database backup.");
+      return;
+    }
+    setEnterpriseMessage(`Backup created: ${data.filename}`);
+    const listResponse = await fetchWithAuth("/api/admin/backups");
+    if (listResponse?.ok) setBackups(await listResponse.json());
+  };
+
+  const downloadDatabaseBackup = async (filename) => {
+    const response = await fetchWithAuth(`/api/admin/backups/${encodeURIComponent(filename)}`);
+    if (!response) return;
+    if (!response.ok) {
+      const data = await response.json();
+      setEnterpriseMessage(data.error || "Unable to download database backup.");
+      return;
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+    setEnterpriseMessage(`Downloaded ${filename}.`);
   };
 
   const saveSecurityPolicy = async (requireAdminMfa) => {
@@ -1229,6 +1370,8 @@ export default function Dashboard({ auth, onLogout }) {
                 <div style={{ marginTop: 10, fontSize: 18, fontWeight: 700, color: operationsHealth?.status === "healthy" ? "#22c55e" : "#f59e0b" }}>{operationsHealth?.status || "Not loaded"}</div>
                 <div style={{ marginTop: 12, color: "#94a3b8", fontSize: 13 }}>Database: {operationsHealth?.database || "n/a"}</div>
                 <div style={{ color: "#94a3b8", fontSize: 13 }}>Incidents: {operationsHealth?.incidents ?? "n/a"} · Cases: {operationsHealth?.cases ?? "n/a"}</div>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Ingestion failed: {operationsHealth?.ingestion?.failed ?? "n/a"} · queued: {operationsHealth?.ingestion?.queued ?? "n/a"}</div>
+                <div style={{ color: "#94a3b8", fontSize: 13 }}>Backup storage: {operationsHealth?.backup_storage || "n/a"}</div>
               </div>
               <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
                 <div style={{ color: "#94a3b8", fontSize: 13 }}>Administrator MFA</div>
@@ -1242,6 +1385,95 @@ export default function Dashboard({ auth, onLogout }) {
                 <div style={{ color: "#94a3b8", fontSize: 13 }}>SOAR approvals</div>
                 <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700 }}>{executions.filter((execution) => execution.status === "pending_approval").length}</div>
                 <div style={{ color: "#94a3b8", fontSize: 13 }}>Executions awaiting an administrator</div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ fontWeight: 700, marginBottom: 8 }}>Windows Sysmon connector</div>
+                <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12 }}>
+                  Create a key for a Sysmon JSON event source. The key is shown only once.
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input value={newSysmonSourceName} onChange={(event) => setNewSysmonSourceName(event.target.value)} placeholder="Source name (e.g. workstation-01)" style={{ flex: 1, minWidth: 0, padding: 10, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  <button onClick={createSysmonSource} style={{ padding: "10px 12px", background: "#22c55e", color: "#020617", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>Create</button>
+                </div>
+                {newSysmonApiKey && (
+                  <div style={{ marginTop: 12, padding: 12, background: "#020617", borderRadius: 6, overflowWrap: "anywhere" }}>
+                    <div style={{ color: "#fbbf24", fontSize: 12, marginBottom: 6 }}>Copy this key into your collector now; it cannot be retrieved later.</div>
+                    <code>{newSysmonApiKey}</code>
+                    <button onClick={() => {
+                      if (!navigator.clipboard?.writeText) {
+                        setEnterpriseMessage("Clipboard access is unavailable; select and copy the API key manually.");
+                        return;
+                      }
+                      navigator.clipboard.writeText(newSysmonApiKey).then(
+                        () => setEnterpriseMessage("Sysmon API key copied."),
+                        () => setEnterpriseMessage("Could not copy the API key; select and copy it manually.")
+                      );
+                    }} style={{ display: "block", marginTop: 8, padding: "6px 10px", background: "#111827", color: "#e2e8f0", border: "1px solid #334155", borderRadius: 6, cursor: "pointer" }}>Copy key</button>
+                  </div>
+                )}
+                <div style={{ marginTop: 12, color: "#94a3b8", fontSize: 12 }}>
+                  Send JSON event objects to <code>{API}/api/ingest</code> with the <code>X-API-Key</code> header.
+                </div>
+                <div style={{ marginTop: 10, color: "#94a3b8", fontSize: 12 }}>
+                  Active Windows event sources: {logSources.filter((source) => source.source_type === "windows_event" && source.enabled).length}
+                </div>
+                <div style={{ display: "grid", gap: 8, maxHeight: 140, overflowY: "auto", marginTop: 8 }}>
+                  {logSources.filter((source) => source.source_type === "windows_event").map((source) => (
+                    <div key={source.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: 8, background: "#020617", borderRadius: 6 }}>
+                      <div>
+                        <strong style={{ fontSize: 13 }}>{source.name}</strong>
+                        <div style={{ color: "#94a3b8", fontSize: 11 }}>Last event: {source.last_seen ? new Date(source.last_seen).toLocaleString() : "none"}</div>
+                      </div>
+                      {source.enabled && <button onClick={() => rotateSysmonKey(source.id)} style={{ padding: "6px 8px", background: "#111827", color: "#e2e8f0", border: "1px solid #334155", borderRadius: 6, cursor: "pointer" }}>Rotate key</button>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ fontWeight: 700, marginBottom: 8 }}>Alert deduplication</div>
+                <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12 }}>
+                  Suppress identical open alerts received within the selected time window. Set to 0 to disable.
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input type="number" min="0" max="1440" value={dedupWindowMinutes} onChange={(event) => setDedupWindowMinutes(event.target.value)} aria-label="Deduplication window in minutes" style={{ width: 110, padding: 10, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  <span style={{ alignSelf: "center", color: "#94a3b8" }}>minutes</span>
+                  <button onClick={saveDedupWindow} style={{ marginLeft: "auto", padding: "10px 12px", background: "#22c55e", color: "#020617", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>Save</button>
+                </div>
+                <div style={{ display: "grid", gap: 8, maxHeight: 180, overflowY: "auto", marginTop: 14 }}>
+                  {alertGroups.slice(0, 10).map((group) => (
+                    <div key={group.id} style={{ padding: 10, background: "#020617", borderRadius: 6 }}>
+                      <strong>{group.title}</strong>
+                      <div style={{ color: "#94a3b8", fontSize: 12 }}>
+                        {group.incident_count} events · {group.suppressed_count} suppressed · {group.severity}
+                      </div>
+                    </div>
+                  ))}
+                  {!alertGroups.length && <div style={{ color: "#94a3b8", fontSize: 13 }}>No alert groups yet.</div>}
+                </div>
+              </div>
+
+              <div style={{ background: "#0f172a", borderRadius: 8, padding: 20, border: "1px solid #1e293b" }}>
+                <div style={{ fontWeight: 700, marginBottom: 8 }}>Database backups</div>
+                <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12 }}>
+                  Create a consistent SQLite snapshot stored in the backend backups directory.
+                </div>
+                <button onClick={createDatabaseBackup} style={{ padding: "10px 12px", background: "#22c55e", color: "#020617", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>Create backup</button>
+                <div style={{ display: "grid", gap: 8, maxHeight: 180, overflowY: "auto", marginTop: 14 }}>
+                  {backups.map((backup) => (
+                    <div key={backup.filename} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: 10, background: "#020617", borderRadius: 6 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ overflowWrap: "anywhere", fontSize: 12 }}>{backup.filename}</div>
+                        <div style={{ color: "#94a3b8", fontSize: 11 }}>{Math.ceil(backup.size_bytes / 1024)} KB</div>
+                      </div>
+                      <button onClick={() => downloadDatabaseBackup(backup.filename)} style={{ padding: "6px 8px", background: "#111827", color: "#e2e8f0", border: "1px solid #334155", borderRadius: 6, cursor: "pointer" }}>Download</button>
+                    </div>
+                  ))}
+                  {!backups.length && <div style={{ color: "#94a3b8", fontSize: 13 }}>No local backups yet.</div>}
+                </div>
               </div>
             </div>
 
@@ -1276,7 +1508,14 @@ export default function Dashboard({ auth, onLogout }) {
                   <button onClick={createDetectionRule} style={{ padding: 10, background: "#22c55e", color: "#020617", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>Create rule</button>
                 </div>
                 <div style={{ display: "grid", gap: 8, marginTop: 18, maxHeight: 240, overflowY: "auto" }}>
-                  {detectionRules.map((rule) => <div key={rule.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: 10, background: "#020617", borderRadius: 6 }}><div><strong>{rule.name}</strong><div style={{ color: "#94a3b8", fontSize: 12 }}>{rule.severity} · {rule.mitre_attack_id || "Unmapped"}</div></div><button onClick={() => deleteDetectionRule(rule.id)} style={{ border: "none", background: "transparent", color: "#f87171", cursor: "pointer" }}>Delete</button></div>)}
+                  {detectionRules.map((rule) => (
+                    <div key={rule.id} style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", alignItems: "center", gap: 8, padding: 10, background: "#020617", borderRadius: 6 }}>
+                      <div><strong>{rule.name}</strong><div style={{ color: "#94a3b8", fontSize: 12 }}>{rule.severity} · {rule.mitre_attack_id || "Unmapped"} · {rule.enabled ? "Enabled" : "Disabled"}</div></div>
+                      <button onClick={() => testDetectionRule(rule)} style={{ border: "1px solid #334155", background: "#111827", color: "#cbd5e1", borderRadius: 6, padding: "6px 8px", cursor: "pointer" }}>Test</button>
+                      <button onClick={() => toggleDetectionRule(rule)} style={{ border: "1px solid #334155", background: "#111827", color: "#cbd5e1", borderRadius: 6, padding: "6px 8px", cursor: "pointer" }}>{rule.enabled ? "Disable" : "Enable"}</button>
+                      <button onClick={() => deleteDetectionRule(rule.id)} style={{ border: "none", background: "transparent", color: "#f87171", cursor: "pointer" }}>Delete</button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1298,6 +1537,11 @@ export default function Dashboard({ auth, onLogout }) {
                       )}
                     </div>
                   ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 10 }}>
+                  <input value={auditActorFilter} onChange={(event) => setAuditActorFilter(event.target.value)} placeholder="Filter by actor" style={{ padding: 8, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  <input value={auditActionFilter} onChange={(event) => setAuditActionFilter(event.target.value)} placeholder="Filter by exact action" style={{ padding: 8, background: "#020617", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6 }} />
+                  <button onClick={loadEnterprise} style={{ padding: 8, background: "#111827", border: "1px solid #334155", color: "#e2e8f0", borderRadius: 6, cursor: "pointer" }}>Filter audit trail</button>
                 </div>
                 <div style={{ display: "grid", gap: 8, maxHeight: 240, overflowY: "auto" }}>
                   {auditLogs.map((entry) => <div key={entry.id} style={{ padding: 10, background: "#020617", borderRadius: 6 }}><strong style={{ fontSize: 13 }}>{entry.action}</strong><div style={{ color: "#94a3b8", fontSize: 12 }}>{entry.actor} · {entry.resource} · {new Date(entry.created_at).toLocaleString()}</div></div>)}

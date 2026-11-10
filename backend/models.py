@@ -222,6 +222,7 @@ class AlertGroup(db.Model):
     status = db.Column(db.String(30), default='open', nullable=False)
     assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     incident_count = db.Column(db.Integer, default=0, nullable=False)
+    suppressed_count = db.Column(db.Integer, default=0, nullable=False)
     first_seen = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
@@ -234,6 +235,7 @@ class AlertGroup(db.Model):
             "status": self.status,
             "assigned_to": self.assigned_to,
             "incident_count": self.incident_count,
+            "suppressed_count": self.suppressed_count,
             "first_seen": self.first_seen.isoformat(),
             "last_seen": self.last_seen.isoformat(),
         }

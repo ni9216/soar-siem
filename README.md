@@ -267,6 +267,40 @@ curl -X POST http://localhost:5000/api/logs \
   -d '{"log":"Failed login attempt from 192.168.1.100"}'
 ```
 
+### Windows Sysmon ingestion
+
+In the admin dashboard, open **Security Operations → Windows Sysmon connector** and create a source.
+Copy the API key when it is displayed; it is only returned once. Configure your Sysmon collector to
+POST JSON events to `http://localhost:5000/api/ingest` with that value in the `X-API-Key` header.
+The ingester accepts Sysmon fields such as `EventID`, `EventRecordID`, `UtcTime`, `Computer`,
+`User`, and `EventData`. For example:
+
+```bash
+curl -X POST http://localhost:5000/api/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_INGESTION_API_KEY" \
+  -d '{"EventID":3,"EventRecordID":8181,"UtcTime":"2026-11-10T07:00:00Z","Computer":"WS-01","User":"DOMAIN\\analyst","EventData":{"SourceIp":"10.0.0.12","DestinationIp":"203.0.113.8","DestinationPort":"443","Image":"C:\\Windows\\System32\\example.exe"}}'
+```
+
+Events are normalized, deduplicated by source/host/record ID, then sent through the existing
+security event processing pipeline. Do not expose ingestion keys in source control or public logs.
+
+### Alert rules, deduplication, audit, and operations
+
+Admins can create, test, enable, or disable detection rules under **Security Operations**. Matching
+rules are applied during log processing. Identical open alerts are suppressed for five minutes by
+default; admins can change the window from 0 (off) to 1440 minutes. Repeat events still update the
+alert group's event and suppression counts. The audit trail records account, incident, policy,
+rule, approval, and backup actions.
+
+The operations panel shows database health, queued/failed ingestion counts, and local backup
+availability. Admins can create and download local SQLite snapshots from the same panel. Backups
+are written under `backend/backups/` with restricted directory/file permissions. The local backup
+API is SQLite-only; use your database provider's managed backup mechanism for PostgreSQL.
+
+To restore a local snapshot, stop the backend first, keep a copy of the current database, replace
+`backend/db.sqlite` with the selected backup, and restart the backend. Never replace a live database.
+
 ### View Incidents
 ```bash
 curl http://localhost:5000/api/incidents \

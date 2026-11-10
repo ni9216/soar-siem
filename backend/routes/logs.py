@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_jwt_extended import jwt_required
 import html
 import hashlib
 import re
 
-from models import AlertGroup, DetectionRule, db, Incident
+from models import AlertGroup, DetectionRule, SecuritySetting, db, Incident
 from services.audit import record_audit
 from services.severity_engine import severity_score
 from services.ml_models import full_analysis
@@ -105,6 +105,44 @@ def process_log(data, source_name='analyst_api'):
     if matched_rules:
         title_parts.append(f"RULE: {matched_rules[0].name}")
 
+    ip_match = re.search(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', log)
+    grouping_value = f"{mitre_id or 'unmapped'}|{ip_match.group(0) if ip_match else 'no-ip'}|{severity}"
+    grouping_key = hashlib.sha256(grouping_value.encode()).hexdigest()
+    group = AlertGroup.query.filter_by(grouping_key=grouping_key).first()
+
+    dedup_setting = SecuritySetting.query.get('alert_dedup_window_minutes')
+    try:
+        dedup_window_minutes = int(dedup_setting.value) if dedup_setting else 5
+    except ValueError:
+        from flask import current_app
+        current_app.logger.error("Invalid alert_dedup_window_minutes setting; using 5 minutes")
+        dedup_window_minutes = 5
+
+    now = datetime.utcnow()
+    if group and group.status != 'closed' and dedup_window_minutes > 0:
+        duplicate = Incident.query.filter_by(alert_group_id=group.id, details=log).filter(
+            Incident.timestamp >= now - timedelta(minutes=dedup_window_minutes),
+            Incident.status.notin_({'resolved', 'closed'}),
+        ).order_by(Incident.timestamp.desc()).first()
+        if duplicate:
+            group.incident_count += 1
+            group.suppressed_count += 1
+            group.last_seen = now
+            db.session.commit()
+            record_audit('system', 'alert.deduplicated', f'incident/{duplicate.id}', details={
+                'alert_group_id': group.id,
+                'suppressed_count': group.suppressed_count,
+            })
+            return jsonify({
+                "status": "ok",
+                "severity": severity,
+                "anomaly": anomaly,
+                "mitre_id": mitre_id,
+                "alert_group_id": group.id,
+                "incident_id": duplicate.id,
+                "deduplicated": True,
+            })
+
     try:
         incident = Incident(
             title=" | ".join(title_parts),
@@ -117,10 +155,6 @@ def process_log(data, source_name='analyst_api'):
         db.session.add(incident)
         db.session.flush()
         append_incident_timeline(incident, 'system', 'incident_created', {'source': source_name})
-        ip_match = re.search(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', log)
-        grouping_value = f"{mitre_id or 'unmapped'}|{ip_match.group(0) if ip_match else 'no-ip'}|{severity}"
-        grouping_key = hashlib.sha256(grouping_value.encode()).hexdigest()
-        group = AlertGroup.query.filter_by(grouping_key=grouping_key).first()
         if group is None:
             group = AlertGroup(
                 grouping_key=grouping_key,
@@ -132,6 +166,7 @@ def process_log(data, source_name='analyst_api'):
             db.session.add(group)
             db.session.flush()
         group.incident_count += 1
+        group.status = 'open'
         group.last_seen = datetime.utcnow()
         incident.alert_group_id = group.id
         db.session.commit()
@@ -180,6 +215,7 @@ def process_log(data, source_name='analyst_api'):
 
     return jsonify({
         "status": "ok",
+        "incident_id": incident.id,
         "severity": severity,
         "anomaly": anomaly,
         "mitre_id": mitre_id,

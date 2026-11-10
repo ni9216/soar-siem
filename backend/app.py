@@ -202,6 +202,30 @@ app.register_blueprint(enterprise_bp, url_prefix="/api")
 app.register_blueprint(ingestion_bp, url_prefix="/api")
 
 
+def migrate_alert_group_schema():
+    with app.app_context():
+        try:
+            with db.engine.connect() as conn:
+                if conn.dialect.name == 'sqlite':
+                    columns = {
+                        row[1] for row in conn.execute(text("PRAGMA table_info(alert_group)")).fetchall()
+                    }
+                    if columns and 'suppressed_count' not in columns:
+                        conn.execute(text(
+                            "ALTER TABLE alert_group ADD COLUMN suppressed_count INTEGER NOT NULL DEFAULT 0"
+                        ))
+                elif conn.dialect.name == 'postgresql':
+                    conn.execute(text(
+                        "ALTER TABLE alert_group ADD COLUMN IF NOT EXISTS suppressed_count INTEGER NOT NULL DEFAULT 0"
+                    ))
+                conn.commit()
+        except Exception:
+            app.logger.exception("Unable to migrate alert group deduplication schema")
+
+
+migrate_alert_group_schema()
+
+
 # =========================
 # STATUS ROUTE (TEST SERVER)
 # =========================
@@ -276,6 +300,11 @@ if __name__ == "__main__":
                     if 'timeline' not in columns:
                         conn.execute(text("ALTER TABLE incident ADD COLUMN timeline TEXT DEFAULT '[]'"))
 
+                    result = conn.execute(text("PRAGMA table_info(alert_group)"))
+                    alert_group_columns = [row[1] for row in result.fetchall()]
+                    if 'suppressed_count' not in alert_group_columns:
+                        conn.execute(text("ALTER TABLE alert_group ADD COLUMN suppressed_count INTEGER NOT NULL DEFAULT 0"))
+
                     result = conn.execute(text("PRAGMA table_info(playbook_execution)"))
                     execution_columns = [row[1] for row in result.fetchall()]
                     if 'approved_by' not in execution_columns:
@@ -302,6 +331,7 @@ if __name__ == "__main__":
                     conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS sla_due_at TIMESTAMP"))
                     conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS closed_at TIMESTAMP"))
                     conn.execute(text("ALTER TABLE incident ADD COLUMN IF NOT EXISTS timeline TEXT DEFAULT '[]'"))
+                    conn.execute(text("ALTER TABLE alert_group ADD COLUMN IF NOT EXISTS suppressed_count INTEGER NOT NULL DEFAULT 0"))
                     conn.execute(text("ALTER TABLE playbook_execution ADD COLUMN IF NOT EXISTS approved_by VARCHAR(80)"))
                     try:
                         conn.execute(text("ALTER TABLE \"user\" ADD COLUMN totp_secret VARCHAR(32)"))

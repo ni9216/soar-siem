@@ -112,11 +112,22 @@ def ingest_source_event():
     if not isinstance(payload, dict):
         return jsonify({'error': 'JSON object required'}), 400
     try:
-        normalized, occurred_at = normalize_event(payload)
+        normalized, occurred_at = normalize_event(payload, source.source_type)
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
-    external_id = str(payload.get('event_id') or '')
-    event_id = hashlib.sha256(f'{source.id}:{external_id or json.dumps(normalized, sort_keys=True)}'.encode()).hexdigest()
+    winlog = payload.get('winlog') if isinstance(payload.get('winlog'), dict) else {}
+    provided_id = payload.get('event_id')
+    record_id = payload.get('record_id') or payload.get('EventRecordID') or winlog.get('record_id')
+    if provided_id:
+        identity = f'{source.id}:event:{provided_id}'
+    elif record_id:
+        identity = (
+            f"{source.id}:{normalized['host']['name'] or ''}:"
+            f"{record_id}:{occurred_at.isoformat()}"
+        )
+    else:
+        identity = f'{source.id}:{json.dumps(normalized, sort_keys=True)}'
+    event_id = hashlib.sha256(identity.encode()).hexdigest()
     existing = SecurityEvent.query.filter_by(event_id=event_id).first()
     if existing:
         return jsonify({'event_id': existing.event_id, 'status': existing.status, 'duplicate': True}), 202
