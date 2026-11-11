@@ -86,6 +86,8 @@ external integrations.
 
 The repository includes a Render Blueprint in `render.yaml` for the Flask API and static dashboard.
 It reuses an existing PostgreSQL database so it does not try to create a second free-tier database.
+The backend runs Flask-SocketIO in threading mode with a threaded Gunicorn worker; keep it at one
+worker because several in-memory services are process-local.
 To deploy:
 
 1. Push the repository to GitHub.

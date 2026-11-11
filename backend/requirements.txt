@@ -10,7 +10,7 @@ pyotp
 qrcode[pil]
 numpy
 scikit-learn
-eventlet
+simple-websocket
 kafka-python
 elasticsearch
 requests

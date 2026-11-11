@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: python init_db.py && gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:$PORT
+    startCommand: python init_db.py && gunicorn --worker-class gthread --workers 1 --threads 100 app:app --bind 0.0.0.0:$PORT
     healthCheckPath: /api/status
     envVars:
       - key: PYTHON_VERSION
