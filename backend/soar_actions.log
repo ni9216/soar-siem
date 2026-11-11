@@ -480,3 +480,29 @@ Traceback (most recent call last):
 sqlalchemy.exc.OperationalError: (psycopg.OperationalError) connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-11-11 16:49:13,117 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.8.2:5000
+2026-11-11 16:49:13,118 - INFO - [33mPress CTRL+C to quit[0m
+2026-11-11 16:49:13,118 - INFO -  * Restarting with stat
+2026-11-11 16:49:15,141 - WARNING -  * Debugger is active!
+2026-11-11 16:49:15,150 - INFO -  * Debugger PIN: 121-609-599
+2026-11-11 16:49:44,150 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "OPTIONS /api/login HTTP/1.1" 200 -
+2026-11-11 16:49:44,325 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "POST /api/login HTTP/1.1" 200 -
+2026-11-11 16:49:44,385 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /socket.io/?EIO=4&transport=polling&t=6eb7b2p9 HTTP/1.1" 200 -
+2026-11-11 16:49:44,391 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "OPTIONS /api/incidents HTTP/1.1" 200 -
+2026-11-11 16:49:44,393 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /socket.io/?EIO=4&transport=polling&t=6eb7g89c HTTP/1.1" 200 -
+2026-11-11 16:49:44,396 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "OPTIONS /api/stats HTTP/1.1" 200 -
+2026-11-11 16:49:44,401 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "OPTIONS /api/users HTTP/1.1" 200 -
+2026-11-11 16:49:44,406 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "OPTIONS /api/cases HTTP/1.1" 200 -
+2026-11-11 16:49:44,408 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "OPTIONS /api/threats HTTP/1.1" 200 -
+2026-11-11 16:49:44,440 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /api/incidents HTTP/1.1" 200 -
+2026-11-11 16:49:44,454 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /api/stats HTTP/1.1" 200 -
+2026-11-11 16:49:44,457 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /api/cases HTTP/1.1" 200 -
+2026-11-11 16:49:44,468 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "POST /socket.io/?EIO=4&transport=polling&t=6eb89mjs&sid=1EwiblXRODT5oW2hAAAB HTTP/1.1" 200 -
+2026-11-11 16:49:44,474 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /socket.io/?EIO=4&transport=polling&t=6eb8ewav&sid=1EwiblXRODT5oW2hAAAB HTTP/1.1" 200 -
+2026-11-11 16:49:44,483 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /api/threats HTTP/1.1" 200 -
+2026-11-11 16:49:44,485 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:44] "GET /api/users HTTP/1.1" 200 -
+2026-11-11 16:49:53,641 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:53] "OPTIONS /api/assets HTTP/1.1" 200 -
+2026-11-11 16:49:53,651 - INFO - 127.0.0.1 - - [11/Nov/2026 16:49:53] "GET /api/assets HTTP/1.1" 200 -
