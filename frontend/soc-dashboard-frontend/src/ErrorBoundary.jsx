@@ -3,12 +3,20 @@ import { Component } from 'react';
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { 
+    this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     };
   }
+
+  resetErrorBoundary = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+    });
+  };
 
   static getDerivedStateFromError() {
     return { hasError: true };
@@ -17,9 +25,9 @@ export default class ErrorBoundary extends Component {
   componentDidCatch(error, errorInfo) {
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
-    
+
     // Log error for debugging
     console.error('Error caught by boundary:', error, errorInfo);
   }
@@ -91,11 +99,12 @@ export default class ErrorBoundary extends Component {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button
-                onClick={() => window.location.reload()}
+                onClick={this.resetErrorBoundary}
                 style={{
                   flex: 1,
+                  minWidth: 140,
                   padding: 14,
                   background: '#22c55e',
                   color: 'white',
@@ -109,12 +118,37 @@ export default class ErrorBoundary extends Component {
                 onMouseOver={(e) => e.target.style.background = '#16a34a'}
                 onMouseOut={(e) => e.target.style.background = '#22c55e'}
               >
+                Try Again
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  flex: 1,
+                  minWidth: 140,
+                  padding: 14,
+                  background: '#1e293b',
+                  color: '#e2e8f0',
+                  border: '1px solid #334155',
+                  borderRadius: 12,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#0f172a';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = '#1e293b';
+                }}
+              >
                 Refresh Page
               </button>
               <button
                 onClick={() => window.location.href = '/'}
                 style={{
                   flex: 1,
+                  minWidth: 140,
                   padding: 14,
                   background: '#1e293b',
                   color: '#22c55e',

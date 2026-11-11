@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useEffectEvent, useRef, useState } from "rea
 import { io } from "socket.io-client";
 
 const IncidentSummaryChart = lazy(() => import("./IncidentSummaryChart"));
+const OperationsPanels = lazy(() => import("./OperationsPanels"));
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const COLORS = {
@@ -12,10 +13,17 @@ const COLORS = {
 };
 
 const tabs = [
+  { id: "overview", label: "Overview" },
   { id: "incidents", label: "Incidents" },
+  { id: "timeline", label: "Investigation" },
+  { id: "assets", label: "Assets" },
+  { id: "hunt", label: "Threat Hunt" },
   { id: "logs", label: "Live Logs" },
   { id: "threats", label: "Threat Intelligence" },
+  { id: "playbooks", label: "Playbooks" },
+  { id: "detections", label: "Detections" },
   { id: "soar", label: "SOAR & Automation" },
+  { id: "cases", label: "Case Management" },
   { id: "users", label: "User Management", adminOnly: true },
   { id: "enterprise", label: "Security Operations", adminOnly: true },
   { id: "settings", label: "Settings" },
@@ -43,13 +51,16 @@ function SummaryCard({ title, value, color }) {
 }
 
 export default function Dashboard({ auth, onLogout }) {
-  const [activeTab, setActiveTab] = useState("incidents");
+  const [activeTab, setActiveTab] = useState("overview");
   const [incidents, setIncidents] = useState([]);
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState({ Critical: 0, High: 0, Medium: 0, Low: 0 });
   const [users, setUsers] = useState([]);
   const [threats, setThreats] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIncidentId, setSelectedIncidentId] = useState(null);
+  const [severityFilter, setSeverityFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [scanTarget, setScanTarget] = useState("");
   const [scanMessage, setScanMessage] = useState("");
   const [workflowNote, setWorkflowNote] = useState("Select a workflow to get started.");
@@ -69,6 +80,9 @@ export default function Dashboard({ auth, onLogout }) {
   const [securityPolicy, setSecurityPolicy] = useState({ require_admin_mfa: false });
   const [dedupWindowMinutes, setDedupWindowMinutes] = useState(5);
   const [alertGroups, setAlertGroups] = useState([]);
+  const [cases, setCases] = useState([]);
+  const [newCase, setNewCase] = useState({ title: "", description: "", severity: "Medium", incident_ids: [] });
+  const [caseNote, setCaseNote] = useState("");
   const [logSources, setLogSources] = useState([]);
   const [newSysmonSourceName, setNewSysmonSourceName] = useState("");
   const [newSysmonApiKey, setNewSysmonApiKey] = useState("");
@@ -77,6 +91,21 @@ export default function Dashboard({ auth, onLogout }) {
   const [auditActionFilter, setAuditActionFilter] = useState("");
   const [enterpriseMessage, setEnterpriseMessage] = useState("");
   const [newRule, setNewRule] = useState({ name: "", pattern: "", severity: "Medium", mitre_attack_id: "" });
+  const [overviewRange, setOverviewRange] = useState(24);
+  const [assets, setAssets] = useState([]);
+  const [assetQuery, setAssetQuery] = useState("");
+  const [selectedAssetId, setSelectedAssetId] = useState(null);
+  const [newAsset, setNewAsset] = useState({ name: "", ip_address: "", hostname: "", asset_type: "server", criticality: "medium", owner: "" });
+  const [huntQuery, setHuntQuery] = useState("");
+  const [huntResults, setHuntResults] = useState({ incidents: [], assets: [], logs: [] });
+  const [huntMessage, setHuntMessage] = useState("");
+  const [selectedPlaybookIncidentId, setSelectedPlaybookIncidentId] = useState("");
+  const [playbookChoice, setPlaybookChoice] = useState("investigation");
+  const [playbookMessage, setPlaybookMessage] = useState("");
+  const [ruleTestId, setRuleTestId] = useState(null);
+  const [ruleTestLog, setRuleTestLog] = useState("");
+  const [ruleMessage, setRuleMessage] = useState("");
+  const [assetMessage, setAssetMessage] = useState("");
   const canManageIncidents = ["admin", "analyst"].includes(auth?.role);
   const isViewer = auth?.role === "viewer";
   const availableTabs = tabs.filter(tab => !tab.adminOnly || auth?.role === "admin");
@@ -130,6 +159,173 @@ export default function Dashboard({ auth, onLogout }) {
     if (!response) return;
     const data = await response.json();
     setThreats(data);
+  };
+
+  const loadCases = async () => {
+    const response = await fetchWithAuth("/api/cases");
+    if (!response) return;
+    const data = await response.json();
+    setCases(data);
+  };
+
+  const loadAssets = async () => {
+    const response = await fetchWithAuth("/api/assets");
+    if (!response?.ok) return;
+    setAssets(await response.json());
+  };
+
+  const loadPlaybookConsole = async () => {
+    const response = await fetchWithAuth("/api/soar/executions");
+    if (!response?.ok) return;
+    setExecutions(await response.json());
+  };
+
+  const loadDetections = async () => {
+    const [rulesResponse, groupsResponse] = await Promise.all([
+      fetchWithAuth("/api/rules"),
+      fetchWithAuth("/api/alert-groups"),
+    ]);
+    if (rulesResponse?.ok) setDetectionRules(await rulesResponse.json());
+    if (groupsResponse?.ok) setAlertGroups(await groupsResponse.json());
+    if (auth?.role === "admin") {
+      const dedupResponse = await fetchWithAuth("/api/alert-deduplication");
+      if (dedupResponse?.ok) setDedupWindowMinutes((await dedupResponse.json()).window_minutes);
+    }
+  };
+
+  const createAsset = async () => {
+    if (!newAsset.name.trim()) return setAssetMessage("An asset name is required.");
+    const response = await fetchWithAuth("/api/assets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newAsset),
+    });
+    if (!response) return;
+    const data = await response.json();
+    if (!response.ok) return setAssetMessage(data.error || "Unable to create asset.");
+    setAssets((current) => [data, ...current]);
+    setSelectedAssetId(data.id);
+    setNewAsset({ name: "", ip_address: "", hostname: "", asset_type: "server", criticality: "medium", owner: "" });
+    setAssetMessage("Asset added to inventory.");
+  };
+
+  const runThreatHunt = async () => {
+    const query = huntQuery.trim();
+    if (query.length < 2) {
+      setHuntMessage("Enter at least 2 characters to search.");
+      return;
+    }
+    setHuntMessage("Searching incidents, assets, and recent live logs...");
+    try {
+      const [incidentResponse, assetResponse] = await Promise.all([
+        fetchWithAuth(`/api/search?q=${encodeURIComponent(query)}`),
+        fetchWithAuth(`/api/assets/search?q=${encodeURIComponent(query)}`),
+      ]);
+      if (!incidentResponse || !assetResponse) return;
+      const incidentData = incidentResponse.ok ? await incidentResponse.json() : [];
+      const assetData = assetResponse.ok ? await assetResponse.json() : [];
+      const matchingLogs = logs.filter((log) => JSON.stringify(log).toLowerCase().includes(query.toLowerCase()));
+      setHuntResults({ incidents: incidentData, assets: assetData, logs: matchingLogs });
+      setHuntMessage(`Found ${incidentData.length} incidents, ${assetData.length} assets, and ${matchingLogs.length} recent live logs.`);
+    } catch {
+      setHuntMessage("Threat hunt search could not reach the API.");
+    }
+  };
+
+  const requestPlaybookExecution = async (dryRun) => {
+    const incidentId = Number(selectedPlaybookIncidentId);
+    if (!incidentId) {
+      setPlaybookMessage("Select an incident before requesting a playbook.");
+      return;
+    }
+    const response = await fetchWithAuth("/api/soar/executions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ incident_id: incidentId, playbook: playbookChoice, dry_run: dryRun }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    setPlaybookMessage(response.ok
+      ? dryRun ? `Dry run recorded as execution #${data.id}. No actions were performed.` : `Execution #${data.id} is awaiting administrator approval.`
+      : data.error || "Unable to request playbook execution.");
+    if (response.ok) await loadPlaybookConsole();
+  };
+
+  const testDetectionRuleWithSample = async (rule) => {
+    if (!rule) {
+      setRuleMessage("Select an available rule to test.");
+      return;
+    }
+    if (!ruleTestLog.trim()) {
+      setRuleMessage("Enter a sample event before testing the rule.");
+      return;
+    }
+    const response = await fetchWithAuth(`/api/rules/${rule.id}/test`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ log: ruleTestLog }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    setRuleMessage(response.ok
+      ? `${rule.name}: ${data.matched ? `matched at ${data.severity} severity` : "no match"}.`
+      : data.error || "Unable to test rule.");
+  };
+
+  const createCase = async () => {
+    if (!newCase.title.trim()) {
+      setWorkflowNote("A case title is required.");
+      return;
+    }
+    const response = await fetchWithAuth("/api/cases", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newCase.title.trim(),
+        description: newCase.description.trim(),
+        severity: newCase.severity,
+        incident_ids: newCase.incident_ids,
+      }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    if (response.ok) {
+      setCases((current) => [data, ...current]);
+      setNewCase({ title: "", description: "", severity: "Medium", incident_ids: [] });
+      setWorkflowNote(`Case "${data.title}" created.`);
+    } else {
+      setWorkflowNote(data.error || "Unable to create case.");
+    }
+  };
+
+  const updateCaseStatus = async (caseId, status) => {
+    const response = await fetchWithAuth(`/api/cases/${caseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    setCases((current) => current.map((item) => item.id === data.id ? data : item));
+  };
+
+  const addCaseNote = async (caseId) => {
+    if (!caseNote.trim()) return;
+    const response = await fetchWithAuth(`/api/cases/${caseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note: caseNote.trim() }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    setCases((current) => current.map((item) => item.id === data.id ? data : item));
+    setCaseNote("");
+  };
+
+  const deleteCase = async (caseId) => {
+    const response = await fetchWithAuth(`/api/cases/${caseId}`, { method: "DELETE" });
+    if (!response) return;
+    setCases((current) => current.filter((item) => item.id !== caseId));
   };
 
   const loadEnterprise = async () => {
@@ -223,6 +419,7 @@ export default function Dashboard({ auth, onLogout }) {
     if (!response) return;
     const data = await response.json();
     setEnterpriseMessage(response.ok ? "Alert deduplication settings saved." : data.error || "Unable to save deduplication settings.");
+    setRuleMessage(response.ok ? "Alert deduplication settings saved." : data.error || "Unable to save deduplication settings.");
   };
 
   const toggleDetectionRule = async (rule) => {
@@ -236,8 +433,10 @@ export default function Dashboard({ auth, onLogout }) {
     if (response.ok) {
       setDetectionRules((current) => current.map((item) => item.id === data.id ? data : item));
       setEnterpriseMessage(`Rule ${data.enabled ? "enabled" : "disabled"}.`);
+      setRuleMessage(`Rule ${data.enabled ? "enabled" : "disabled"}.`);
     } else {
       setEnterpriseMessage(data.error || "Unable to update detection rule.");
+      setRuleMessage(data.error || "Unable to update detection rule.");
     }
   };
 
@@ -313,8 +512,10 @@ export default function Dashboard({ auth, onLogout }) {
       setDetectionRules((current) => [...current, data].sort((left, right) => left.name.localeCompare(right.name)));
       setNewRule({ name: "", pattern: "", severity: "Medium", mitre_attack_id: "" });
       setEnterpriseMessage("Detection rule created.");
+      setRuleMessage("Detection rule created.");
     } else {
       setEnterpriseMessage(data.error || "Unable to create detection rule.");
+      setRuleMessage(data.error || "Unable to create detection rule.");
     }
   };
 
@@ -324,6 +525,7 @@ export default function Dashboard({ auth, onLogout }) {
     if (response.ok) {
       setDetectionRules((current) => current.filter((rule) => rule.id !== ruleId));
       setEnterpriseMessage("Detection rule deleted.");
+      setRuleMessage("Detection rule deleted.");
     }
   };
 
@@ -565,6 +767,50 @@ export default function Dashboard({ auth, onLogout }) {
     }
   };
 
+  const filteredIncidents = incidents.filter((incident) => {
+    const matchesSearch = !searchQuery.trim() || JSON.stringify(incident).toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSeverity = severityFilter === "all" || incident.severity === severityFilter;
+    const matchesStatus = statusFilter === "all" || (incident.status || "open") === statusFilter;
+    return matchesSearch && matchesSeverity && matchesStatus;
+  });
+
+  const selectedIncident = incidents.find((incident) => incident.id === selectedIncidentId) || null;
+
+  const quickIncidentStatusOptions = [
+    { value: "investigating", label: "Investigating" },
+    { value: "contained", label: "Contain" },
+    { value: "escalated", label: "Escalate" },
+    { value: "resolved", label: "Resolve" },
+  ];
+
+  const getIncidentEnrichment = (incident) => {
+    const incidentText = `${incident.title || ""} ${incident.details || ""}`.toLowerCase();
+    const relatedThreats = threats.filter((threat) => {
+      const target = `${threat.indicator || ""} ${threat.type || ""}`.toLowerCase();
+      return target && incidentText.includes(target.split(" ")[0]);
+    }).slice(0, 2);
+
+    const mitreId = incident.mitre_attack_id || "T1078";
+    const caseTags = [
+      incident.severity || "Medium",
+      mitreId,
+      relatedThreats.length ? "Threat intel matched" : "Manual review",
+    ];
+
+    return {
+      mitreId,
+      caseTags,
+      relatedThreats,
+    };
+  };
+
+  const handleIncidentQuickAction = async (incidentId, status) => {
+    const result = await updateIncident(incidentId, { status });
+    if (result) {
+      setWorkflowNote(`Incident ${result.id} moved to ${status}.`);
+    }
+  };
+
   const totalIncidents = incidents.length;
   const totalThreats = threats.length;
   const totalLogs = logs.length;
@@ -575,6 +821,7 @@ export default function Dashboard({ auth, onLogout }) {
     void loadStats();
     void loadUsers();
     void loadThreats();
+    void loadCases();
   });
 
   useEffect(() => {
@@ -687,6 +934,9 @@ export default function Dashboard({ auth, onLogout }) {
               onClick={() => {
                 setActiveTab(tab.id);
                 if (tab.id === "enterprise") loadEnterprise();
+                if (tab.id === "assets") loadAssets();
+                if (tab.id === "playbooks") loadPlaybookConsole();
+                if (tab.id === "detections") loadDetections();
               }}
               style={{
                 padding: "12px 18px",
@@ -701,6 +951,42 @@ export default function Dashboard({ auth, onLogout }) {
             </button>
           ))}
         </nav>
+
+        {activeTab === "overview" && (
+          <Suspense fallback={<div style={{ color: "#94a3a8", padding: 16 }}>Loading operations overview...</div>}>
+            <OperationsPanels panel="overview" incidents={incidents} cases={cases} range={overviewRange} onRangeChange={setOverviewRange} />
+          </Suspense>
+        )}
+
+        {activeTab === "timeline" && (
+          <Suspense fallback={<div style={{ color: "#94a3a8", padding: 16 }}>Loading investigation workspace...</div>}>
+            <OperationsPanels panel="timeline" incidents={incidents} users={users} selectedIncidentId={selectedIncidentId} onSelectIncident={(id) => setSelectedIncidentId(Number(id) || null)} />
+          </Suspense>
+        )}
+
+        {activeTab === "assets" && (
+          <Suspense fallback={<div style={{ color: "#94a3a8", padding: 16 }}>Loading asset inventory...</div>}>
+            <OperationsPanels panel="assets" assets={assets} incidents={incidents} query={assetQuery} onQueryChange={setAssetQuery} selectedAssetId={selectedAssetId} onSelectAsset={setSelectedAssetId} asset={assets.find((item) => String(item.id) === String(selectedAssetId))} draft={newAsset} onDraftChange={setNewAsset} onCreate={createAsset} canManage={canManageIncidents} message={assetMessage} />
+          </Suspense>
+        )}
+
+        {activeTab === "hunt" && (
+          <Suspense fallback={<div style={{ color: "#94a3a8", padding: 16 }}>Loading threat hunt...</div>}>
+            <OperationsPanels panel="hunt" query={huntQuery} onQueryChange={setHuntQuery} onSearch={runThreatHunt} results={huntResults} message={huntMessage} onOpenIncident={(id) => { setSelectedIncidentId(id); setActiveTab("timeline"); }} />
+          </Suspense>
+        )}
+
+        {activeTab === "playbooks" && (
+          <Suspense fallback={<div style={{ color: "#94a3a8", padding: 16 }}>Loading playbook console...</div>}>
+            <OperationsPanels panel="playbooks" incidents={incidents} selectedIncidentId={selectedPlaybookIncidentId} onSelectIncident={setSelectedPlaybookIncidentId} playbook={playbookChoice} onPlaybookChange={setPlaybookChoice} onRequest={requestPlaybookExecution} message={playbookMessage} executions={executions} isViewer={isViewer} isAdmin={auth?.role === "admin"} onApprove={approveExecution} onReject={rejectExecution} onRollback={rollbackExecution} />
+          </Suspense>
+        )}
+
+        {activeTab === "detections" && (
+          <Suspense fallback={<div style={{ color: "#94a3a8", padding: 16 }}>Loading detection controls...</div>}>
+            <OperationsPanels panel="detections" rules={detectionRules} groups={alertGroups} draft={newRule} onDraftChange={setNewRule} onCreate={createDetectionRule} onToggle={toggleDetectionRule} onDelete={deleteDetectionRule} canManage={canManageIncidents} isAdmin={auth?.role === "admin"} dedupWindow={dedupWindowMinutes} onDedupChange={setDedupWindowMinutes} onSaveDedup={saveDedupWindow} testRuleId={ruleTestId} onTestRuleIdChange={setRuleTestId} testLog={ruleTestLog} onTestLogChange={setRuleTestLog} onTest={testDetectionRuleWithSample} message={ruleMessage} />
+          </Suspense>
+        )}
 
         {activeTab === "incidents" && (
           <div>
@@ -749,13 +1035,14 @@ export default function Dashboard({ auth, onLogout }) {
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 16, flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: 280, display: "flex", gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 280, display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search incidents by keyword"
                   style={{
-                    width: "100%",
+                    flex: 1,
+                    minWidth: 220,
                     background: "#020617",
                     border: "1px solid #334155",
                     borderRadius: 14,
@@ -763,6 +1050,45 @@ export default function Dashboard({ auth, onLogout }) {
                     color: "#e2e8f0",
                   }}
                 />
+                <select
+                  value={severityFilter}
+                  onChange={(e) => setSeverityFilter(e.target.value)}
+                  style={{
+                    minWidth: 130,
+                    background: "#020617",
+                    border: "1px solid #334155",
+                    borderRadius: 14,
+                    padding: 14,
+                    color: "#e2e8f0",
+                  }}
+                >
+                  <option value="all">All severities</option>
+                  <option value="Critical">Critical</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  style={{
+                    minWidth: 140,
+                    background: "#020617",
+                    border: "1px solid #334155",
+                    borderRadius: 14,
+                    padding: 14,
+                    color: "#e2e8f0",
+                  }}
+                >
+                  <option value="all">All statuses</option>
+                  <option value="open">Open</option>
+                  <option value="triage">Triage</option>
+                  <option value="investigating">Investigating</option>
+                  <option value="escalated">Escalated</option>
+                  <option value="contained">Contained</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
                 <button
                   onClick={handleSearch}
                   style={{
@@ -777,25 +1103,108 @@ export default function Dashboard({ auth, onLogout }) {
                   Search
                 </button>
               </div>
-              <button
-                onClick={loadIncidents}
-                style={{
-                  padding: "14px 18px",
-                  borderRadius: 14,
-                  border: "1px solid #334155",
-                  background: "#111827",
-                  color: "#94a3b8",
-                  cursor: "pointer",
-                }}
-              >
-                Refresh incidents
-              </button>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                {(searchQuery || severityFilter !== "all" || statusFilter !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSeverityFilter("all");
+                      setStatusFilter("all");
+                      void loadIncidents();
+                    }}
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      border: "1px solid #334155",
+                      background: "#111827",
+                      color: "#e2e8f0",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                )}
+                <button
+                  onClick={loadIncidents}
+                  style={{
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    border: "1px solid #334155",
+                    background: "#111827",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                  }}
+                >
+                  Refresh incidents
+                </button>
+              </div>
             </div>
 
+            <div style={{ marginBottom: 12, color: "#94a3b8", fontSize: 14 }}>
+              Showing {filteredIncidents.length} of {incidents.length} incidents
+            </div>
+
+            {selectedIncident && (
+              <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b", marginBottom: 18 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ color: "#94a3b8", fontSize: 13 }}>Selected incident</div>
+                    <div style={{ fontSize: 22, fontWeight: 700 }}>{selectedIncident.title}</div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedIncidentId(null)}
+                    style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #334155", background: "#111827", color: "#e2e8f0", cursor: "pointer" }}
+                  >
+                    Close details
+                  </button>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginTop: 16 }}>
+                  <div style={{ padding: 14, background: "#020617", borderRadius: 12 }}>
+                    <div style={{ color: "#94a3b8", fontSize: 12 }}>Severity</div>
+                    <div style={{ fontWeight: 700, color: COLORS[selectedIncident.severity] || "#94a3b8" }}>{selectedIncident.severity || "Unknown"}</div>
+                  </div>
+                  <div style={{ padding: 14, background: "#020617", borderRadius: 12 }}>
+                    <div style={{ color: "#94a3b8", fontSize: 12 }}>Status</div>
+                    <div style={{ fontWeight: 700 }}>{selectedIncident.status || "open"}</div>
+                  </div>
+                  <div style={{ padding: 14, background: "#020617", borderRadius: 12 }}>
+                    <div style={{ color: "#94a3b8", fontSize: 12 }}>Owner</div>
+                    <div style={{ fontWeight: 700 }}>{users.find((user) => user.id === selectedIncident.assigned_to)?.username || "Unassigned"}</div>
+                  </div>
+                  <div style={{ padding: 14, background: "#020617", borderRadius: 12 }}>
+                    <div style={{ color: "#94a3b8", fontSize: 12 }}>MITRE</div>
+                    <div style={{ fontWeight: 700 }}>{selectedIncident.mitre_attack_id || "T1078"}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16, lineHeight: 1.7, color: "#e2e8f0", background: "#020617", borderRadius: 12, padding: 16 }}>
+                  {selectedIncident.details || selectedIncident.description || selectedIncident.log || "No details provided."}
+                </div>
+
+                {selectedIncident.timeline?.length > 0 && (
+                  <div style={{ marginTop: 18 }}>
+                    <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12 }}>Timeline</div>
+                    <div style={{ display: "grid", gap: 10 }}>
+                      {[...selectedIncident.timeline].reverse().slice(0, 6).map((entry, index) => (
+                        <div key={`${entry.at || entry.ts || index}-${index}`} style={{ background: "#020617", borderRadius: 10, padding: 12, border: "1px solid #1e293b" }}>
+                          <div style={{ fontWeight: 700 }}>{entry.action?.replace(/_/g, " ") || "Event"}</div>
+                          <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 4 }}>
+                            {entry.actor || entry.by || "system"} · {entry.at || entry.ts ? new Date(entry.at || entry.ts).toLocaleString() : "Time unavailable"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
-              {incidents.length ? (
-                incidents.map((incident) => {
+              {filteredIncidents.length ? (
+                filteredIncidents.map((incident) => {
                   const assignedLabel = users.find((u) => u.id === incident.assigned_to)?.username || "Unassigned";
+                  const enrichment = getIncidentEnrichment(incident);
                   return (
                     <div
                       key={incident.id}
@@ -813,6 +1222,34 @@ export default function Dashboard({ auth, onLogout }) {
                       <div style={{ color: "#94a3b8", marginTop: 8, fontSize: 13 }}>{incident.time || incident.timestamp || "Unknown time"}</div>
                       <p style={{ marginTop: 12, color: "#e2e8f0", lineHeight: 1.6 }}>{incident.details || incident.description || incident.log || "No details provided."}</p>
 
+                      <div style={{ marginTop: 12 }}>
+                        <button
+                          onClick={() => setSelectedIncidentId(incident.id)}
+                          style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #334155", background: "#111827", color: "#e2e8f0", cursor: "pointer" }}
+                        >
+                          View details
+                        </button>
+                      </div>
+
+                      <div style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "#0f172a", border: "1px solid #1e293b" }}>
+                        <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 6 }}>Alert enrichment</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                          <span style={{ display: "inline-block", padding: "6px 10px", borderRadius: 999, background: "#111827", color: "#93c5fd", fontSize: 12, fontWeight: 700 }}>
+                            MITRE {enrichment.mitreId}
+                          </span>
+                          {enrichment.caseTags.map((tag) => (
+                            <span key={tag} style={{ display: "inline-block", padding: "6px 10px", borderRadius: 999, background: "#0b1220", color: "#cbd5e1", fontSize: 12 }}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        {enrichment.relatedThreats.length > 0 && (
+                          <div style={{ color: "#cbd5e1", marginTop: 8, fontSize: 12 }}>
+                            Related intel: {enrichment.relatedThreats.map((threat) => threat.indicator).join(", ")}
+                          </div>
+                        )}
+                      </div>
+
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
                         <div style={{ color: "#94a3b8", fontSize: 13 }}><strong>Status:</strong> {incident.status || "open"}</div>
                         <div style={{ color: "#94a3b8", fontSize: 13 }}><strong>Assigned:</strong> {assignedLabel}</div>
@@ -821,6 +1258,29 @@ export default function Dashboard({ auth, onLogout }) {
                         <strong>SLA:</strong> {incident.sla_due_at ? `Due ${new Date(incident.sla_due_at).toLocaleString()}` : "No SLA target"}
                         {incident.sla_breached ? " · Overdue" : ""}
                       </div>
+
+                      {canManageIncidents && (
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+                          {quickIncidentStatusOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleIncidentQuickAction(incident.id, option.value)}
+                              disabled={isViewer || (incident.status || "open") === option.value}
+                              style={{
+                                padding: "8px 10px",
+                                borderRadius: 10,
+                                border: "1px solid #334155",
+                                background: (incident.status || "open") === option.value ? "#1e293b" : "#111827",
+                                color: "#e2e8f0",
+                                cursor: isViewer ? "not-allowed" : "pointer",
+                                fontSize: 12,
+                              }}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
 
                       {canManageIncidents && (
                         <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
@@ -1572,6 +2032,97 @@ export default function Dashboard({ auth, onLogout }) {
               <div style={{ color: "#e2e8f0", lineHeight: 1.7 }}>
                 Update backend configuration, verify tokens, or contact your SOC administrator for additional access.
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "cases" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ background: "#0f172a", borderRadius: 20, padding: 22, border: "1px solid #1e293b" }}>
+              <div style={{ color: "#94a3b8", marginBottom: 12 }}>Case management</div>
+              <div style={{ display: "grid", gap: 14 }}>
+                <input
+                  value={newCase.title}
+                  onChange={(event) => setNewCase({ ...newCase, title: event.target.value })}
+                  placeholder="Case title"
+                  style={{ padding: 14, borderRadius: 14, background: "#020617", border: "1px solid #334155", color: "#e2e8f0" }}
+                />
+                <textarea
+                  value={newCase.description}
+                  onChange={(event) => setNewCase({ ...newCase, description: event.target.value })}
+                  placeholder="Summary of investigation"
+                  rows={4}
+                  style={{ padding: 14, borderRadius: 14, background: "#020617", border: "1px solid #334155", color: "#e2e8f0" }}
+                />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12 }}>
+                  <select
+                    value={newCase.severity}
+                    onChange={(event) => setNewCase({ ...newCase, severity: event.target.value })}
+                    style={{ padding: 14, borderRadius: 14, background: "#020617", border: "1px solid #334155", color: "#e2e8f0" }}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                  <button
+                    onClick={createCase}
+                    style={{ padding: "14px 18px", borderRadius: 14, border: "none", background: "#22c55e", color: "#020617", cursor: "pointer" }}
+                  >
+                    Create case
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
+              {cases.length ? cases.map((item) => (
+                <div key={item.id} style={{ background: "#020617", borderRadius: 18, padding: 18, borderLeft: "4px solid #22c55e" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <strong>{item.title}</strong>
+                    <span style={{ color: "#94a3b8" }}>{item.severity}</span>
+                  </div>
+                  <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 8 }}>{item.status || "open"}</div>
+                  <p style={{ color: "#e2e8f0", lineHeight: 1.6, marginTop: 12 }}>{item.description || "No summary provided."}</p>
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                    {['open', 'investigating', 'escalated', 'resolved', 'closed'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => updateCaseStatus(item.id, status)}
+                        disabled={(item.status || 'open') === status}
+                        style={{
+                          padding: "8px 10px",
+                          borderRadius: 10,
+                          border: "1px solid #334155",
+                          background: (item.status || 'open') === status ? '#1e293b' : '#111827',
+                          color: '#e2e8f0',
+                          cursor: 'pointer',
+                          fontSize: 12,
+                        }}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <textarea
+                      rows={3}
+                      value={caseNote}
+                      onChange={(event) => setCaseNote(event.target.value)}
+                      placeholder="Add a case note"
+                      style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 12, padding: 12, color: "#e2e8f0" }}
+                    />
+                    <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                      <button onClick={() => addCaseNote(item.id)} style={{ padding: "10px 14px", borderRadius: 12, border: "none", background: "#22c55e", color: "#020617", cursor: "pointer" }}>Add note</button>
+                      <button onClick={() => deleteCase(item.id)} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #7f1d1d", background: "#450a0a", color: "#fecaca", cursor: "pointer" }}>Delete</button>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div style={{ color: "#94a3b8", padding: 14, borderRadius: 16, background: "#111827" }}>No cases created yet.</div>
+              )}
             </div>
           </div>
         )}
