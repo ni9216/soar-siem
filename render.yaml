@@ -14,9 +14,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: soar-siem-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
@@ -37,10 +35,3 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://soar-siem-backend.onrender.com
-
-databases:
-  - name: soar-siem-db
-    databaseName: soar_siem
-    user: soar_user
-    region: oregon
-    plan: free
