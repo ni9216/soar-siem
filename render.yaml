@@ -34,4 +34,4 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        value: https://soar-siem-backend-sl99.onrender.com
+        value: https://soar-siem-backend-roii.onrender.com
