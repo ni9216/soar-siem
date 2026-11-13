@@ -24,7 +24,7 @@ services:
       - key: DEFAULT_ADMIN_PASSWORD
         sync: false
       - key: ALLOWED_ORIGINS
-        value: https://soar-siem-frontend-sl99.onrender.com
+        value: https://soar-siem-frontend-5mc8.onrender.com
 
   - type: web
     name: soar-siem-frontend

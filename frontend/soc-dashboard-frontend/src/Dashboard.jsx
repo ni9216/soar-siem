@@ -652,9 +652,14 @@ export default function Dashboard({ auth, onLogout }) {
       if (!response) return;
 
       const data = await response.json();
-      setScanMessage(data.message || "Scan started successfully.");
+      if (!response.ok) {
+        setScanMessage(data.error || `Scan failed (HTTP ${response.status}).`);
+        return;
+      }
+
+      setScanMessage(`Scan complete: ${data.length} port result(s).`);
     } catch {
-      setScanMessage("Failed to launch scan. Check backend connectivity.");
+      setScanMessage("Unable to reach the scan service. Check the backend connection and try again.");
     }
   };
 
@@ -1387,7 +1392,7 @@ export default function Dashboard({ auth, onLogout }) {
                 <input
                   value={scanTarget}
                   onChange={(e) => setScanTarget(e.target.value)}
-                  placeholder="Enter host, IP, or asset"
+                  placeholder="IPv4 address of an active registered asset"
                   style={{
                     width: "100%",
                     padding: 14,
@@ -1398,8 +1403,12 @@ export default function Dashboard({ auth, onLogout }) {
                     marginBottom: 14,
                   }}
                 />
+                <div style={{ color: "#64748b", fontSize: 12, marginBottom: 14 }}>
+                  Scans are limited to active assets registered in the dashboard.
+                </div>
                 <button
                   onClick={runScan}
+                  disabled={isViewer}
                   style={{
                     width: "100%",
                     padding: 14,

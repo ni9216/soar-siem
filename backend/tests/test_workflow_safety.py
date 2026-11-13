@@ -4,14 +4,15 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock, Mock, patch
 
 os.environ['DATABASE_URL'] = 'sqlite://'
 
 from flask_jwt_extended import create_access_token
 
 from app import app, db
-from models import AlertGroup, AuditLog, Incident, Playbook, SecurityEvent, User, db
+from models import AlertGroup, Asset, AuditLog, Incident, Playbook, SecurityEvent, User, db
 from services.incident_workflow import incident_sla_deadline
 from services.ingestion import normalize_event
 from services.ml_evaluation import evaluate_models
@@ -55,6 +56,86 @@ class WorkflowSafetyTests(unittest.TestCase):
 
     def headers_for(self, username):
         return {'Authorization': f'Bearer {create_access_token(identity=username)}'}
+
+    def test_scan_requires_active_registered_asset_and_scanner_role(self):
+        invalid_target = self.client.post(
+            '/api/scan',
+            headers=self.headers_for('test-analyst'),
+            json={'target': '127.0.0.1'},
+        )
+        self.assertEqual(invalid_target.status_code, 400)
+
+        response = self.client.post(
+            '/api/scan',
+            headers=self.headers_for('test-analyst'),
+            json={'target': '192.0.2.10'},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('active, registered assets', response.json['error'])
+
+        asset = Asset(name='Inactive scan target', ip_address='192.0.2.10', status='inactive')
+        db.session.add(asset)
+        db.session.commit()
+        response = self.client.post(
+            '/api/scan',
+            headers=self.headers_for('test-analyst'),
+            json={'target': asset.ip_address},
+        )
+        self.assertEqual(response.status_code, 403)
+
+        asset.status = 'active'
+        db.session.commit()
+        response = self.client.post(
+            '/api/scan',
+            headers=self.headers_for('test-viewer'),
+            json={'target': asset.ip_address},
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_scan_runs_only_for_registered_active_asset(self):
+        target = '192.0.2.10'
+        db.session.add(Asset(name='Registered scan target', ip_address=target, status='active'))
+        db.session.commit()
+
+        scanner = MagicMock()
+        scanner.all_hosts.return_value = [target]
+        host_scanner = MagicMock()
+        host_scanner.all_protocols.return_value = ['tcp']
+        host_scanner.__getitem__.return_value = {443: {'state': 'open'}}
+        scanner.__getitem__.return_value = host_scanner
+        nmap_module = SimpleNamespace(
+            PortScanner=Mock(return_value=scanner),
+            PortScannerError=RuntimeError,
+        )
+        with patch.dict('sys.modules', {'nmap': nmap_module}):
+            response = self.client.post(
+                '/api/scan',
+                headers=self.headers_for('test-analyst'),
+                json={'target': target},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, [{'host': target, 'port': 443, 'state': 'open'}])
+        scanner.scan.assert_called_once_with(target, arguments='-sV -p 1-1024')
+
+    def test_scan_reports_nmap_runtime_unavailable(self):
+        target = '192.0.2.10'
+        db.session.add(Asset(name='Registered scan target', ip_address=target, status='active'))
+        db.session.commit()
+
+        nmap_module = SimpleNamespace(
+            PortScanner=Mock(side_effect=RuntimeError('nmap executable not found')),
+            PortScannerError=RuntimeError,
+        )
+        with patch.dict('sys.modules', {'nmap': nmap_module}):
+            response = self.client.post(
+                '/api/scan',
+                headers=self.headers_for('test-analyst'),
+                json={'target': target},
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertIn('Nmap is not installed', response.json['error'])
 
     def test_sla_targets_and_timeline_are_consistent(self):
         created_at = datetime.utcnow()
